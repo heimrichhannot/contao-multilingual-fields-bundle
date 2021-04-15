@@ -10,6 +10,8 @@ namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\DataContainer;
+use HeimrichHannot\UtilsBundle\Url\UrlUtil;
 
 /**
  * @Hook("loadDataContainer", priority=-256)
@@ -22,10 +24,15 @@ class LoadDataContainerListener
      * @var array
      */
     protected $bundleConfig;
+    /**
+     * @var UrlUtil
+     */
+    protected $urlUtil;
 
-    public function __construct(array $bundleConfig)
+    public function __construct(array $bundleConfig, UrlUtil $urlUtil)
     {
         $this->bundleConfig = $bundleConfig;
+        $this->urlUtil = $urlUtil;
     }
 
     public function __invoke($table)
@@ -37,6 +44,17 @@ class LoadDataContainerListener
 
         static::$processedTables[] = $table;
 
+        $this->initAssets();
+        $this->initConfig($table);
+    }
+
+    protected function initAssets()
+    {
+        $GLOBALS['TL_CSS']['contao-multilingual-fields-bundle'] = 'bundles/heimrichhannotmultilingualfields/js/contao-multilingual-fields-bundle.css';
+    }
+
+    protected function initConfig($table)
+    {
         if (!isset($this->bundleConfig['data_containers']) || !\is_array($this->bundleConfig['data_containers']) ||
             !isset($this->bundleConfig['data_containers'][$table]) || !isset($this->bundleConfig['languages']) ||
             empty($this->bundleConfig['languages'])) {
@@ -47,6 +65,7 @@ class LoadDataContainerListener
 
         $dca = &$GLOBALS['TL_DCA'][$table];
 
+        // add translated fields
         foreach ($config['fields'] as $fieldConfig) {
             $field = $fieldConfig['name'];
 
@@ -82,5 +101,20 @@ class LoadDataContainerListener
                 ;
             }
         }
+
+        // add language switch
+        $dca['fields']['mf_editLanguages'] = [
+            'inputType' => 'hyperlink',
+            'eval' => [
+                'text' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_editLanguages'],
+                'linkClass' => 'tl_submit',
+                'tl_class' => 'long edit-languages',
+                'url' => function (DataContainer $dc) {
+                    return $this->urlUtil->addQueryString('');
+                },
+            ],
+        ];
+
+        $dca['palettes']['default'] = 'mf_editLanguages;'.$dca['palettes']['default'];
     }
 }
