@@ -19,10 +19,13 @@ Example: Imagine the following `config.yml` (position is the field representing 
 
 ```yaml
 huh_multilingual_fields:
+   fallback_language: de
+     languages:
+       - en
    data_containers:
       tl_member:
          fields:
-            - position
+            - { name: position }
 ```
 
 This would end up in your DCA being automatically modified the following way:
@@ -56,10 +59,13 @@ This would end up in your DCA being automatically modified the following way:
 1. Create the file `<project_dir>/config/config.yml` if not already existing and specify your translatable fields:
    ```yaml
    huh_multilingual_fields:
-      data_containers:
-         tl_member:
-            fields:
-               - position
+     fallback_language: de
+     languages:
+       - en
+     data_containers:
+       tl_member:
+         fields:
+           - { name: position }
    ```
 1. Clear the project's cache (`<project_dir>/var/cache`).
-1. Update the database. The new fields should be created now
+1. Update the database. The new fields should be created now.

@@ -1,0 +1,3 @@
+# messages
+huh.alert_reminder.message.issues_existing: 'Es wurden Probleme gefunden, die Ihre Aufmerksamkeit erfordern. Bitte nehmen Sie sich diesen zeitnah an: %issues%. %alertsLink%'
+huh.alert_reminder.message.solve_issue: Problem lösen
