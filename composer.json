@@ -1,0 +1,67 @@
+{
+    "name": "heimrichhannot/contao-multilingual-fields-bundle",
+    "description": "This utility bundle offers functionality to translate arbitrary fields of any table-driven data container in the Contao CMS.",
+    "keywords": [
+        "contao",
+        "multilingual",
+        "translation",
+        "dca",
+        "field",
+        "fields"
+    ],
+    "type": "contao-bundle",
+    "homepage": "https://github.com/heimrichhannot/contao-multilingual-fields-bundle",
+    "license": "LGPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "Heimrich & Hannot",
+            "email": "digitales@heimrich-hannot.de",
+            "homepage": "http://www.heimrich-hannot.de",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/heimrichhannot/contao-multilingual-fields-bundle/issues"
+    },
+    "require": {
+        "php": "^7.2",
+        "contao/core-bundle": "^4.9",
+        "heimrichhannot/contao-utils-bundle": "^2.191"
+    },
+    "require-dev": {
+        "contao/test-case": "1.1.*",
+        "contao/manager-plugin": "^2.0",
+        "friendsofphp/php-cs-fixer": "^2.2",
+        "phpunit/phpunit": "^6.0",
+        "php-http/guzzle6-adapter": "^1.1",
+        "php-http/message-factory": "^1.0.2",
+        "php-coveralls/php-coveralls": "^2.0",
+        "symfony/phpunit-bridge": "^3.2"
+    },
+    "autoload": {
+        "psr-4": {
+            "HeimrichHannot\\MultilingualFieldsBundle\\": "src/",
+            "Contao\\": "src/Contao/"
+        },
+        "classmap": [
+            "src/"
+        ],
+        "exclude-from-classmap": [
+            "src/Resources/contao/config/",
+            "src/Resources/contao/dca/",
+            "src/Resources/contao/languages/",
+            "src/Resources/contao/templates/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HeimrichHannot\\MultilingualFieldsBundle\\Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "preferred-install": "dist"
+    },
+    "extra": {
+        "contao-manager-plugin": "HeimrichHannot\\MultilingualFieldsBundle\\ContaoManager\\Plugin"
+    }
+}
