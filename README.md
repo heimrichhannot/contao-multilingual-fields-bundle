@@ -6,6 +6,12 @@ This utility bundle offers functionality to translate arbitrary fields of any ta
 
 - define which fields of which data containers should be translatable
 
+## Impressions
+
+![Edit languages button](docs/img/edit-languages-button.png "The button for editing the languages")
+
+![Edit languages](docs/img/edit-languages.png "Editors can specify which of the fields should be translated for which languages")
+
 ## Use case
 
 The use case for this bundle is to have an automatic and structured process for adding translatable fields to a data container.
@@ -23,9 +29,11 @@ huh_multilingual_fields:
      languages:
        - en
    data_containers:
+      palettes:
+         - default
       tl_member:
          fields:
-            - { name: position }
+            - { name: position, legend: personal }
 ```
 
 This would end up in your DCA being automatically modified the following way:
@@ -43,7 +51,7 @@ This would end up in your DCA being automatically modified the following way:
    ],
     // this field is created automatically
    'en_position' => [
-       'label'                   => 'Position (English)', // generated automatically out of the label of the "position" field
+       'label'                   => ['Position (English)', '<the description as given>'], // generated automatically out of the label of the "position" field
        'exclude'                 => true,
        'search'                  => true,
        'inputType'               => 'text',
@@ -63,9 +71,11 @@ This would end up in your DCA being automatically modified the following way:
      languages:
        - en
      data_containers:
+       palettes:
+         - default
        tl_member:
          fields:
-           - { name: position }
+           - { name: position, legend: personal }
    ```
 1. Clear the project's cache (`<project_dir>/var/cache`).
 1. Update the database. The new fields should be created now.
