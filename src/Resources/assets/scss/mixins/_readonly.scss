@@ -1,0 +1,14 @@
+@mixin readonly-widget() {
+  color: #bbb;
+  background-color: #f9f9f9;
+  border: 1px solid #c8c8c8;
+  cursor: not-allowed;
+
+  * {
+    cursor: not-allowed;
+  }
+
+  span {
+    color: #bbb;
+  }
+}

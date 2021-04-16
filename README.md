@@ -55,21 +55,29 @@ This would end up in your DCA being automatically modified the following way:
 [
     // the original position field is unchanged
     'position' => [
-       'exclude'                 => true,
-       'search'                  => true,
-       'inputType'               => 'text',
-       'eval'                    => ['maxlength' => 128, 'tl_class' => 'w50', 'mandatory' => true],
-       'sql'                     => "varchar(128) NOT NULL default ''"
-   ],
+        'exclude'   => true,
+        'search'    => true,
+        'inputType' => 'text',
+        'eval'      => ['maxlength' => 128, 'tl_class' => 'w50', 'mandatory' => true],
+        'sql'       => "varchar(128) NOT NULL default ''"
+    ],
+    // the selector field (subpalette and selector is also set)
+    'en_translate_position' => [
+        'label'     => ['Translate "Position" (English)', 'Click this option in order to translate the field for the given language.'],
+        'exclude'   => true,
+        'inputType' => 'checkbox',
+        'eval'      => ['tl_class' => 'w50', 'submitOnChange' => true, 'translationField' => 'en_position'],
+        'sql'       => "char(1) NOT NULL default ''",
+    ],
     // this field is created automatically
-   'en_position' => [
-       'label'                   => ['Position (English)', '<the description as given>'], // generated automatically out of the label of the "position" field
-       'exclude'                 => true,
-       'search'                  => true,
-       'inputType'               => 'text',
-       'eval'                    => ['maxlength' => 128, 'tl_class' => 'w50', 'mandatory' => true],
-       'sql'                     => "varchar(128) NOT NULL default ''"
-   ]
+    'en_position' => [
+        'label'     => ['Position (English)', '<the description as given>'], // generated automatically out of the label of the "position" field
+        'exclude'   => true,
+        'search'    => true,
+        'inputType' => 'text',
+        'eval'      => ['maxlength' => 128, 'tl_class' => 'w50', 'mandatory' => true, 'translatedField' => 'position'],
+        'sql'       => "varchar(128) NOT NULL default ''"
+    ]
 ]
 ```
 

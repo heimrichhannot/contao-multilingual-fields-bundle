@@ -1,7 +1,28 @@
+@import 'mixins/readonly';
+
 .edit-languages {
   margin-top: 20px;
 
   h3 {
     display: none;
+  }
+}
+
+// readonly controls
+.tl_chosen, select, .tl_submit {
+  &.readonly, .readonly & {
+    @include readonly-widget();
+  }
+}
+
+.widget.readonly {
+  .tl_metawizard .tl_text, .tl_select, .mce-tinymce {
+    @include readonly-widget();
+  }
+
+  .mce-tinymce {
+    .mce-edit-area {
+      opacity: 0.7;
+    }
   }
 }

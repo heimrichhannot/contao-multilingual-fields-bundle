@@ -112,11 +112,15 @@ class LoadDataContainerListener
                 }
 
                 $translatedLabel[0] = ((string) $label[0]).' ('.$GLOBALS['TL_LANG']['LNG'][$language].')';
+                $translatedLabel[1] = $label[1];
 
                 // release the reference
                 unset($fieldDca['label']);
 
                 $fieldDca['label'] = $translatedLabel;
+
+                // link to the original field
+                $fieldDca['eval']['translatedField'] = $field;
 
                 // copy the field
                 $dca['fields'][$translatedFieldname] = $fieldDca;
@@ -135,7 +139,7 @@ class LoadDataContainerListener
                     ],
                     'exclude' => true,
                     'inputType' => 'checkbox',
-                    'eval' => ['tl_class' => 'w50', 'submitOnChange' => true],
+                    'eval' => ['tl_class' => 'w50', 'submitOnChange' => true, 'translationField' => $translatedFieldname],
                     'sql' => "char(1) NOT NULL default ''",
                 ];
 
