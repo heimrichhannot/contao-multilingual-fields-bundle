@@ -8,9 +8,11 @@ This utility bundle offers functionality to translate arbitrary fields of any ta
 
 ## Impressions
 
-![Edit languages button](docs/img/edit-languages-button.png "The button for editing the languages")
+![Edit languages button](docs/img/edit-languages-button.png)
+The button for editing the languages
 
-![Edit languages](docs/img/edit-languages.png "Editors can specify which of the fields should be translated for which languages")
+![Edit languages](docs/img/edit-languages.png)
+Editors can specify which of the fields should be translated for which languages
 
 ## Use case
 
