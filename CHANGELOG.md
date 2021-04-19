@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.3] - 2021-04-19
+
+- enhanced README.md
+
 ## [0.2.2] - 2021-04-19
 
 - added meta field links to the fields' dca

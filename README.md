@@ -38,6 +38,7 @@ Example: Imagine the following `config.yml` (position is the field representing 
 
 ```yaml
 huh_multilingual_fields:
+  fallback_language: de
   languages:
     - en
   data_containers:
@@ -110,6 +111,7 @@ This would end up in your DCA being automatically modified the following way:
 1. Create the file `<project_dir>/config/config.yml` if not already existing and specify your translatable fields:
    ```yaml
    huh_multilingual_fields:
+     fallback_language: de
      languages:
        - en
      data_containers:
