@@ -27,7 +27,8 @@
         "php": "^7.2",
         "contao/core-bundle": "^4.9",
         "heimrichhannot/contao-be_hyperlink-bundle": "^2.0",
-        "heimrichhannot/contao-utils-bundle": "^2.191"
+        "heimrichhannot/contao-utils-bundle": "^2.191",
+        "heimrichhannot/contao-request-bundle": "^1.2"
     },
     "require-dev": {
         "contao/test-case": "1.1.*",

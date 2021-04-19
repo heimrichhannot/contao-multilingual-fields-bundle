@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.1] - 2021-04-16
+
+- fixed assets path and restricted to backend
+- fixed multiple language issue
+- code optimization
+
 ## [0.2.0] - 2021-04-16
 
 - added English translation

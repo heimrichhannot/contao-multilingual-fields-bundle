@@ -11,6 +11,7 @@ namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\DataContainer;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
+use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
 use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
 use HeimrichHannot\UtilsBundle\String\StringUtil;
 use HeimrichHannot\UtilsBundle\Url\UrlUtil;
@@ -44,14 +45,25 @@ class LoadDataContainerListener
      * @var DcaUtil
      */
     protected $dcaUtil;
+    /**
+     * @var ContainerUtil
+     */
+    protected $containerUtil;
 
-    public function __construct(array $bundleConfig, UrlUtil $urlUtil, Request $request, StringUtil $stringUtil, DcaUtil $dcaUtil)
-    {
+    public function __construct(
+        array $bundleConfig,
+        UrlUtil $urlUtil,
+        Request $request,
+        StringUtil $stringUtil,
+        DcaUtil $dcaUtil,
+        ContainerUtil $containerUtil
+    ) {
         $this->bundleConfig = $bundleConfig;
         $this->urlUtil = $urlUtil;
         $this->request = $request;
         $this->stringUtil = $stringUtil;
         $this->dcaUtil = $dcaUtil;
+        $this->containerUtil = $containerUtil;
     }
 
     public function __invoke($table)
@@ -69,17 +81,21 @@ class LoadDataContainerListener
 
     protected function initAssets()
     {
-        $GLOBALS['TL_CSS']['contao-multilingual-fields-bundle'] = 'bundles/heimrichhannotmultilingualfields/js/contao-multilingual-fields-bundle.css';
+        if (!$this->containerUtil->isBackend()) {
+            return;
+        }
+
+        $GLOBALS['TL_CSS']['contao-multilingual-fields-bundle'] = 'bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.css';
     }
 
     protected function initConfig($table)
     {
-        if (!isset($this->bundleConfig['data_containers']) || !\is_array($this->bundleConfig['data_containers']) ||
-            !isset($this->bundleConfig['data_containers'][$table])) {
+        if (!isset($this->bundleConfig['data_containers'][$table]) || !\is_array($this->bundleConfig['data_containers'])) {
             return;
         }
 
         $config = $this->bundleConfig['data_containers'][$table];
+        $languages = $this->bundleConfig['languages'];
 
         $dca = &$GLOBALS['TL_DCA'][$table];
 
@@ -100,7 +116,7 @@ class LoadDataContainerListener
                 $paletteData[$fieldConfig['legend']] = [];
             }
 
-            foreach ($this->bundleConfig['languages'] as $language) {
+            foreach ($languages as $language) {
                 $translatedFieldname = $language.'_'.$field;
                 $fieldDca = $dca['fields'][$field];
 
@@ -143,13 +159,22 @@ class LoadDataContainerListener
                     'sql' => "char(1) NOT NULL default ''",
                 ];
 
+                // add "clr" css class to the first field
+                if ($isEditMode && 0 === array_search($language, $languages)) {
+                    $dca['fields'][$checkboxField]['eval']['tl_class'] = 'w50 clr';
+                }
+
                 // add the subpalette
                 $dca['palettes']['__selector__'][] = $checkboxField;
                 $dca['subpalettes'][$checkboxField] = $translatedFieldname;
 
                 // add field to palette data
                 if (!\in_array($field.','.$checkboxField, $paletteData[$fieldConfig['legend']])) {
-                    $paletteData[$fieldConfig['legend']][] = $field.','.$checkboxField;
+                    if (!isset($paletteData[$fieldConfig['legend']][$field])) {
+                        $paletteData[$fieldConfig['legend']][$field] = [];
+                    }
+
+                    $paletteData[$fieldConfig['legend']][$field][] = $checkboxField;
                 }
             }
         }
@@ -165,9 +190,7 @@ class LoadDataContainerListener
         $dca['fields']['mf_editLanguages'] = [
             'inputType' => 'hyperlink',
             'eval' => [
-                'text' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle'][
-                $isEditMode ? 'mf_closeEditLanguages' : 'mf_editLanguages'
-                ],
+                'text' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle'][$isEditMode ? 'mf_closeEditLanguages' : 'mf_editLanguages'],
                 'linkClass' => 'tl_submit',
                 'tl_class' => 'long edit-languages',
                 'url' => function (DataContainer $dc) use ($isEditMode) {
@@ -184,15 +207,19 @@ class LoadDataContainerListener
         if ($isEditMode) {
             $fixedPalette = '';
 
-            foreach ($paletteData as $legend => $fields) {
+            foreach ($paletteData as $legend => $fieldData) {
                 if (!$this->stringUtil->endsWith($legend, '_legend')) {
                     $legend .= '_legend';
                 }
 
                 $fixedPalette .= '{'.$legend.'},';
 
-                foreach ($fields as $field) {
-                    $fixedPalette .= $field.',';
+                foreach ($fieldData as $originalField => $fields) {
+                    $fixedPalette .= $originalField.',';
+
+                    foreach ($fields as $field) {
+                        $fixedPalette .= $field.',';
+                    }
                 }
 
                 $fixedPalette = rtrim($fixedPalette, ',');
