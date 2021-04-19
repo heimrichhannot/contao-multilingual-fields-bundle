@@ -53,29 +53,52 @@ This would end up in your DCA being automatically modified the following way:
 ```php
 // ...
 [
-    // the original position field is unchanged
+    // the original position field is nearly unchanged -> only some meta field links are set in eval
     'position' => [
         'exclude'   => true,
         'search'    => true,
         'inputType' => 'text',
-        'eval'      => ['maxlength' => 128, 'tl_class' => 'w50', 'mandatory' => true],
+        'eval'      => [
+            'maxlength' => 128,
+            'tl_class' => 'w50',
+            'mandatory' => true,
+            'isTranslatedField' => true,
+            'translationConfig' => [
+                'en' => [
+                    'field' => 'en_position',
+                    'selector' => 'en_translate_position'
+]               ]
+            ]
+         ],
         'sql'       => "varchar(128) NOT NULL default ''"
     ],
+    // automatically created: the selector field and the translation field
     // the selector field (subpalette and selector is also set)
     'en_translate_position' => [
         'label'     => ['Translate "Position" (English)', 'Click this option in order to translate the field for the given language.'],
         'exclude'   => true,
         'inputType' => 'checkbox',
-        'eval'      => ['tl_class' => 'w50', 'submitOnChange' => true, 'translationField' => 'en_position'],
+        'eval'      => [
+            'tl_class' => 'w50',
+            'submitOnChange' => true,
+            'translationField' => 'en_position',
+            'translatedField' => 'position'
+        ],
         'sql'       => "char(1) NOT NULL default ''",
     ],
-    // this field is created automatically
+    // the translation field
     'en_position' => [
         'label'     => ['Position (English)', '<the description as given>'], // generated automatically out of the label of the "position" field
         'exclude'   => true,
         'search'    => true,
         'inputType' => 'text',
-        'eval'      => ['maxlength' => 128, 'tl_class' => 'w50', 'mandatory' => true, 'translatedField' => 'position'],
+        'eval'      => [
+            'maxlength' => 128,
+            'tl_class' => 'w50',
+            'mandatory' => true,
+            'translatedField' => 'position',
+            'translationSelectorField' => 'en_translate_position'
+         ],
         'sql'       => "varchar(128) NOT NULL default ''"
     ]
 ]

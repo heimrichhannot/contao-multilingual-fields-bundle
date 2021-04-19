@@ -118,6 +118,7 @@ class LoadDataContainerListener
 
             foreach ($languages as $language) {
                 $translatedFieldname = $language.'_'.$field;
+                $selectorField = $language.'_translate_'.$field;
                 $fieldDca = $dca['fields'][$field];
 
                 // adjust the label
@@ -137,6 +138,7 @@ class LoadDataContainerListener
 
                 // link to the original field
                 $fieldDca['eval']['translatedField'] = $field;
+                $fieldDca['eval']['translationSelectorField'] = $selectorField;
 
                 // copy the field
                 $dca['fields'][$translatedFieldname] = $fieldDca;
@@ -144,10 +146,23 @@ class LoadDataContainerListener
                 // add the original fields as readonly
                 $readOnlyFields[] = $field;
 
-                // add the selector
-                $checkboxField = $language.'_translate_'.$field;
+                // mark as translated
+                $dca['fields'][$field]['eval']['isTranslatedField'] = true;
 
-                $dca['fields'][$checkboxField] = [
+                // link the translation fields
+                if (!isset($dca['fields'][$field]['eval']['translationConfig'])) {
+                    $dca['fields'][$field]['eval']['translationConfig'] = [];
+                }
+
+                if (!isset($dca['fields'][$field]['eval']['translationConfig'][$language])) {
+                    $dca['fields'][$field]['eval']['translationConfig'][$language] = [];
+                }
+
+                $dca['fields'][$field]['eval']['translationConfig'][$language]['field'] = $translatedFieldname;
+                $dca['fields'][$field]['eval']['translationConfig'][$language]['selector'] = $selectorField;
+
+                // add the selector
+                $dca['fields'][$selectorField] = [
                     'label' => [
                         sprintf($GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_translateField'][0],
                             ((string) $label[0]), $GLOBALS['TL_LANG']['LNG'][$language]),
@@ -155,26 +170,31 @@ class LoadDataContainerListener
                     ],
                     'exclude' => true,
                     'inputType' => 'checkbox',
-                    'eval' => ['tl_class' => 'w50', 'submitOnChange' => true, 'translationField' => $translatedFieldname],
+                    'eval' => [
+                        'tl_class' => 'w50',
+                        'submitOnChange' => true,
+                        'translationField' => $translatedFieldname,
+                        'translatedField' => $field,
+                    ],
                     'sql' => "char(1) NOT NULL default ''",
                 ];
 
                 // add "clr" css class to the first field
                 if ($isEditMode && 0 === array_search($language, $languages)) {
-                    $dca['fields'][$checkboxField]['eval']['tl_class'] = 'w50 clr';
+                    $dca['fields'][$selectorField]['eval']['tl_class'] = 'w50 clr';
                 }
 
                 // add the subpalette
-                $dca['palettes']['__selector__'][] = $checkboxField;
-                $dca['subpalettes'][$checkboxField] = $translatedFieldname;
+                $dca['palettes']['__selector__'][] = $selectorField;
+                $dca['subpalettes'][$selectorField] = $translatedFieldname;
 
                 // add field to palette data
-                if (!\in_array($field.','.$checkboxField, $paletteData[$fieldConfig['legend']])) {
+                if (!\in_array($field.','.$selectorField, $paletteData[$fieldConfig['legend']])) {
                     if (!isset($paletteData[$fieldConfig['legend']][$field])) {
                         $paletteData[$fieldConfig['legend']][$field] = [];
                     }
 
-                    $paletteData[$fieldConfig['legend']][$field][] = $checkboxField;
+                    $paletteData[$fieldConfig['legend']][$field][] = $selectorField;
                 }
             }
         }

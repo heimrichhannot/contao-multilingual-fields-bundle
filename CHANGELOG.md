@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [0.2.2] - 2021-04-19
+
+- added meta field links to the fields' dca
+- enhanced README.md
+
 ## [0.2.1] - 2021-04-16
 
 - fixed assets path and restricted to backend
