@@ -26,3 +26,15 @@
     }
   }
 }
+
+// checkboxes
+.translate-checkbox {
+  margin-bottom: 3.5rem;
+
+  & + [id^="sub_"] > .widget {
+    margin-top: -3.5rem;
+    margin-bottom: 3.5rem;
+    clear: both;
+    float: left;
+  }
+}

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.5] - 2021-06-11
+
+- fixed palette handling and visualization
+
 ## [0.2.4] - 2021-06-11
 
 - fixed README.md

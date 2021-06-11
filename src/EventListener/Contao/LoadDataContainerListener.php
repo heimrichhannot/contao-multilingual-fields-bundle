@@ -11,6 +11,7 @@ namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\DataContainer;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
+use HeimrichHannot\UtilsBundle\Arrays\ArrayUtil;
 use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
 use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
 use HeimrichHannot\UtilsBundle\String\StringUtil;
@@ -49,6 +50,10 @@ class LoadDataContainerListener
      * @var ContainerUtil
      */
     protected $containerUtil;
+    /**
+     * @var ArrayUtil
+     */
+    protected $arrayUtil;
 
     public function __construct(
         array $bundleConfig,
@@ -56,7 +61,8 @@ class LoadDataContainerListener
         Request $request,
         StringUtil $stringUtil,
         DcaUtil $dcaUtil,
-        ContainerUtil $containerUtil
+        ContainerUtil $containerUtil,
+        ArrayUtil $arrayUtil
     ) {
         $this->bundleConfig = $bundleConfig;
         $this->urlUtil = $urlUtil;
@@ -64,6 +70,7 @@ class LoadDataContainerListener
         $this->stringUtil = $stringUtil;
         $this->dcaUtil = $dcaUtil;
         $this->containerUtil = $containerUtil;
+        $this->arrayUtil = $arrayUtil;
     }
 
     public function __invoke($table)
@@ -149,6 +156,13 @@ class LoadDataContainerListener
                 // mark as translated
                 $dca['fields'][$field]['eval']['isTranslatedField'] = true;
 
+                // put to next line
+                $dca['fields'][$field]['eval']['tl_class'] .= ' clr';
+
+                // remove selector behavior
+                unset($dca['fields'][$field]['eval']['submitOnChange']);
+                $this->arrayUtil->removeValue($field, $dca['palettes']['__selector__']);
+
                 // link the translation fields
                 if (!isset($dca['fields'][$field]['eval']['translationConfig'])) {
                     $dca['fields'][$field]['eval']['translationConfig'] = [];
@@ -165,13 +179,13 @@ class LoadDataContainerListener
                 $dca['fields'][$selectorField] = [
                     'label' => [
                         sprintf($GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_translateField'][0],
-                            ((string) $label[0]), $GLOBALS['TL_LANG']['LNG'][$language]),
+                            $GLOBALS['TL_LANG']['LNG'][$language]),
                         $GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_translateField'][1],
                     ],
                     'exclude' => true,
                     'inputType' => 'checkbox',
                     'eval' => [
-                        'tl_class' => 'w50',
+                        'tl_class' => 'w50 translate-checkbox',
                         'submitOnChange' => true,
                         'translationField' => $translatedFieldname,
                         'translatedField' => $field,
@@ -181,7 +195,7 @@ class LoadDataContainerListener
 
                 // add "clr" css class to the first field
                 if ($isEditMode && 0 === array_search($language, $languages)) {
-                    $dca['fields'][$selectorField]['eval']['tl_class'] = 'w50 clr';
+                    $dca['fields'][$selectorField]['eval']['tl_class'] .= ' clr';
                 }
 
                 // add the subpalette
