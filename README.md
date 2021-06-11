@@ -42,9 +42,9 @@ huh_multilingual_fields:
   languages:
     - en
   data_containers:
-    palettes:
-      - default
     tl_member:
+      palettes:
+        - default
       fields:
         - { name: position, legend: personal }
 ```
