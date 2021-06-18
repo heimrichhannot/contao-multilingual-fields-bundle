@@ -77,7 +77,7 @@ This would end up in your DCA being automatically modified the following way:
     // automatically created: the selector field and the translation field
     // the selector field (subpalette and selector is also set)
     'en_translate_position' => [
-        'label'     => ['Translate "Position" (English)', 'Click this option in order to translate the field for the given language.'],
+        'label'     => ['Translate (English)', 'Click this option in order to translate the field for the given language.'],
         'exclude'   => true,
         'inputType' => 'checkbox',
         'eval'      => [
