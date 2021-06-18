@@ -81,7 +81,7 @@ class MultilingualFieldsUtil
             return false;
         }
 
-        if (null !== $element) {
+        if (null !== ($element = $this->modelUtil->findModelInstanceByPk('tl_content', $element))) {
             if (!isset($this->bundleConfig['content_language_select']['types']) || !\is_array($this->bundleConfig['content_language_select']['types']) ||
                 empty($this->bundleConfig['content_language_select']['types'])) {
                 return true;

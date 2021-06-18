@@ -40,7 +40,7 @@ class IsVisibleElementListener
             return true;
         }
 
-        if ($this->multilingualFieldsUtil->hasContentLanguageField($element) && $element->mf_language && $element->mf_language !== $GLOBALS['TL_LANGUAGE']) {
+        if ($this->multilingualFieldsUtil->hasContentLanguageField($element->id) && $element->mf_language && $element->mf_language !== $GLOBALS['TL_LANGUAGE']) {
             return false;
         }
 

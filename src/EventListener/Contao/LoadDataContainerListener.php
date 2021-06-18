@@ -175,12 +175,14 @@ class LoadDataContainerListener
                 // mark as translated
                 $dca['fields'][$field]['eval']['isTranslatedField'] = true;
 
-                // put to next line
-                $dca['fields'][$field]['eval']['tl_class'] .= ' clr';
+                if ($isEditMode) {
+                    // put to next line
+                    $dca['fields'][$field]['eval']['tl_class'] .= ' clr';
 
-                // remove selector behavior
-                unset($dca['fields'][$field]['eval']['submitOnChange']);
-                $this->arrayUtil->removeValue($field, $dca['palettes']['__selector__']);
+                    // remove selector behavior
+                    unset($dca['fields'][$field]['eval']['submitOnChange']);
+                    $this->arrayUtil->removeValue($field, $dca['palettes']['__selector__']);
+                }
 
                 // link the translation fields
                 if (!isset($dca['fields'][$field]['eval']['translationConfig'])) {
@@ -261,16 +263,13 @@ class LoadDataContainerListener
 
         // create onload callback for the palette generation
         $dca['config']['onload_callback'][] = function (DataContainer $dc) use ($isEditMode, $paletteData, $config, &$dca, $table) {
-            if (null === ($element = $this->modelUtil->findModelInstanceByPk('tl_content', $dc->id))) {
-                return;
-            }
+            $paletteName = $this->dcaUtil->getCurrentPaletteName($table, $dc->id) ?: 'default';
 
             // create palette for editing the fields
             if ($isEditMode) {
                 $fixedPalette = '';
 
                 // prepare palette
-                $paletteName = $this->dcaUtil->getCurrentPaletteName($table, $dc->id);
                 $explodedPalette = $this->explodeByPaletteManipulator($dca['palettes'][$paletteName]);
                 $paletteFields = [];
 
@@ -331,8 +330,12 @@ class LoadDataContainerListener
 
                 $fixedPalette = 'mf_editLanguages;'.$fixedPalette;
             } else {
-                $fixedPalette = ('tl_content' === $table && $this->multilingualFieldsUtil->hasContentLanguageField($element) ? 'mf_language,' : '').
-                    'mf_editLanguages;'.$dc->getPalette();
+                if ('tl_content' === $table) {
+                    $fixedPalette = ($this->multilingualFieldsUtil->hasContentLanguageField($dc->id) ? 'mf_language,' : '').
+                        'mf_editLanguages;'.$dca['palettes'][$paletteName];
+                } else {
+                    $fixedPalette = 'mf_editLanguages;'.$dca['palettes'][$paletteName];
+                }
             }
 
             foreach (array_keys($dca['palettes']) as $palette) {
