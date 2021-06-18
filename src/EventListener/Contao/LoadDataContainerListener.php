@@ -182,6 +182,8 @@ class LoadDataContainerListener
                     // remove selector behavior
                     unset($dca['fields'][$field]['eval']['submitOnChange']);
                     $this->arrayUtil->removeValue($field, $dca['palettes']['__selector__']);
+
+                    unset($dca['fields'][$translatedFieldname]['eval']['submitOnChange']);
                 }
 
                 // link the translation fields

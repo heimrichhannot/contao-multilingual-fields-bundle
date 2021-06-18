@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.4] - 2021-06-18
+
+- fixed submitOnChange handling
+
 ## [0.3.3] - 2021-06-18
 
 - fixed palette handling

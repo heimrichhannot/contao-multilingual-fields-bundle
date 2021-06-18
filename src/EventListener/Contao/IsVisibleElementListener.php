@@ -37,7 +37,7 @@ class IsVisibleElementListener
     public function __invoke($element, $return)
     {
         if ($this->containerUtil->isBackend()) {
-            return true;
+            return $return;
         }
 
         if ($this->multilingualFieldsUtil->hasContentLanguageField($element->id) && $element->mf_language && $element->mf_language !== $GLOBALS['TL_LANGUAGE']) {
