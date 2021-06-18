@@ -1,11 +1,14 @@
 # Contao Multilingual Fields Bundle
 
-This utility bundle offers functionality to translate arbitrary fields of any table-driven data container in the Contao
-CMS.
+This utility bundle offers functionality for backend editor's to translate arbitrary fields of any table-driven data
+container in the Contao CMS.
 
 ## Features
 
 - define which fields of which data containers should be translatable
+- adds a button to the backend palette for switching into translation mode
+- content elements: optionally add a select field to the backend palette in order to display the corresponding content
+  element only for the selected language
 
 ## Impressions
 
@@ -43,10 +46,8 @@ huh_multilingual_fields:
     - en
   data_containers:
     tl_member:
-      palettes:
-        - default
       fields:
-        - { name: position, legend: personal }
+        - { name: position }
 ```
 
 This would end up in your DCA being automatically modified the following way:
@@ -112,14 +113,20 @@ This would end up in your DCA being automatically modified the following way:
    ```yaml
    huh_multilingual_fields:
      fallback_language: de
+     content_language_select: # add a select field to content element palettes for displaying elements only for the specified language
+       enabled: true # default: false
+       types: # if not set, the select field is added to all tl_content types
+         - text
      languages:
        - en
      data_containers:
-       palettes:
-         - default
        tl_member:
          fields:
-           - { name: position, legend: personal }
+           - { name: position }
    ```
 1. Clear the project's cache (`<project_dir>/var/cache`).
 1. Update the database. The new fields should be created now.
+
+## Todo
+
+1. translatable aliases

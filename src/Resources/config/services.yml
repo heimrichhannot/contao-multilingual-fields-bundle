@@ -6,4 +6,4 @@ services:
       $bundleConfig: '%huh_multilingual_fields%'
 
   HeimrichHannot\MultilingualFieldsBundle\:
-    resource: '../../{EventListener}/*'
+    resource: '../../{EventListener,Util}/*'

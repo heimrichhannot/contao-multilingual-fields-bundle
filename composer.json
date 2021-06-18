@@ -1,6 +1,6 @@
 {
     "name": "heimrichhannot/contao-multilingual-fields-bundle",
-    "description": "This utility bundle offers functionality to translate arbitrary fields of any table-driven data container in the Contao CMS.",
+    "description": "This utility bundle offers functionality for backend editor's to translate arbitrary fields of any table-driven data container in the Contao CMS.",
     "keywords": [
         "contao",
         "multilingual",

@@ -27,6 +27,7 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
     public function getBundles(ParserInterface $parser)
     {
         $loadAfter = [
+            '\MadeYourDay\RockSolidCustomElements\RockSolidCustomElementsBundle',
             ContaoCoreBundle::class,
         ];
 

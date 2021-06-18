@@ -8,12 +8,15 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
+use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\DataContainer;
+use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
 use HeimrichHannot\UtilsBundle\Arrays\ArrayUtil;
 use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
 use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
+use HeimrichHannot\UtilsBundle\Model\ModelUtil;
 use HeimrichHannot\UtilsBundle\String\StringUtil;
 use HeimrichHannot\UtilsBundle\Url\UrlUtil;
 
@@ -54,23 +57,35 @@ class LoadDataContainerListener
      * @var ArrayUtil
      */
     protected $arrayUtil;
+    /**
+     * @var MultilingualFieldsUtil
+     */
+    protected $multilingualFieldsUtil;
+    /**
+     * @var ModelUtil
+     */
+    protected $modelUtil;
 
     public function __construct(
         array $bundleConfig,
+        MultilingualFieldsUtil $multilingualFieldsUtil,
         UrlUtil $urlUtil,
         Request $request,
         StringUtil $stringUtil,
         DcaUtil $dcaUtil,
         ContainerUtil $containerUtil,
-        ArrayUtil $arrayUtil
+        ArrayUtil $arrayUtil,
+        ModelUtil $modelUtil
     ) {
         $this->bundleConfig = $bundleConfig;
+        $this->multilingualFieldsUtil = $multilingualFieldsUtil;
         $this->urlUtil = $urlUtil;
         $this->request = $request;
         $this->stringUtil = $stringUtil;
         $this->dcaUtil = $dcaUtil;
         $this->containerUtil = $containerUtil;
         $this->arrayUtil = $arrayUtil;
+        $this->modelUtil = $modelUtil;
     }
 
     public function __invoke($table)
@@ -84,6 +99,10 @@ class LoadDataContainerListener
 
         $this->initAssets();
         $this->initConfig($table);
+
+        if ('tl_content' === $table) {
+            $this->addContentLanguageField();
+        }
     }
 
     protected function initAssets()
@@ -119,10 +138,6 @@ class LoadDataContainerListener
                 continue;
             }
 
-            if (!isset($paletteData[$fieldConfig['legend']])) {
-                $paletteData[$fieldConfig['legend']] = [];
-            }
-
             foreach ($languages as $language) {
                 $translatedFieldname = $language.'_'.$field;
                 $selectorField = $language.'_translate_'.$field;
@@ -149,6 +164,10 @@ class LoadDataContainerListener
 
                 // copy the field
                 $dca['fields'][$translatedFieldname] = $fieldDca;
+
+                if (isset($dca['fields'][$translatedFieldname]['eval']['rte'])) {
+                    $dca['fields'][$translatedFieldname]['eval']['tl_class'] = 'long clr';
+                }
 
                 // add the original fields as readonly
                 $readOnlyFields[] = $field;
@@ -203,13 +222,11 @@ class LoadDataContainerListener
                 $dca['subpalettes'][$selectorField] = $translatedFieldname;
 
                 // add field to palette data
-                if (!\in_array($field.','.$selectorField, $paletteData[$fieldConfig['legend']])) {
-                    if (!isset($paletteData[$fieldConfig['legend']][$field])) {
-                        $paletteData[$fieldConfig['legend']][$field] = [];
-                    }
-
-                    $paletteData[$fieldConfig['legend']][$field][] = $selectorField;
+                if (!isset($paletteData[$field])) {
+                    $paletteData[$field] = [];
                 }
+
+                $paletteData[$field][] = $selectorField;
             }
         }
 
@@ -218,6 +235,11 @@ class LoadDataContainerListener
             $this->dcaUtil->setFieldsToReadOnly($dca, [
                 'fields' => $readOnlyFields,
             ]);
+
+            // skip validation for original fields
+            foreach ($readOnlyFields as $readOnlyField) {
+                unset($dca['fields'][$readOnlyField]['eval']['mandatory']);
+            }
         }
 
         // add language switch
@@ -226,7 +248,7 @@ class LoadDataContainerListener
             'eval' => [
                 'text' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle'][$isEditMode ? 'mf_closeEditLanguages' : 'mf_editLanguages'],
                 'linkClass' => 'tl_submit',
-                'tl_class' => 'long edit-languages',
+                'tl_class' => 'w50 edit-languages',
                 'url' => function (DataContainer $dc) use ($isEditMode) {
                     if ($isEditMode) {
                         return $this->urlUtil->removeQueryString([static::EDIT_LANGUAGES_PARAM]);
@@ -237,37 +259,220 @@ class LoadDataContainerListener
             ],
         ];
 
-        // create palette for editing the fields
-        if ($isEditMode) {
-            $fixedPalette = '';
-
-            foreach ($paletteData as $legend => $fieldData) {
-                if (!$this->stringUtil->endsWith($legend, '_legend')) {
-                    $legend .= '_legend';
-                }
-
-                $fixedPalette .= '{'.$legend.'},';
-
-                foreach ($fieldData as $originalField => $fields) {
-                    $fixedPalette .= $originalField.',';
-
-                    foreach ($fields as $field) {
-                        $fixedPalette .= $field.',';
-                    }
-                }
-
-                $fixedPalette = rtrim($fixedPalette, ',');
-
-                $fixedPalette .= ';';
+        // create onload callback for the palette generation
+        $dca['config']['onload_callback'][] = function (DataContainer $dc) use ($isEditMode, $paletteData, $config, &$dca, $table) {
+            if (null === ($element = $this->modelUtil->findModelInstanceByPk('tl_content', $dc->id))) {
+                return;
             }
 
-            $fixedPalette = 'mf_editLanguages;'.$fixedPalette;
-        } else {
-            $fixedPalette = 'mf_editLanguages;'.$dca['palettes']['default'];
+            // create palette for editing the fields
+            if ($isEditMode) {
+                $fixedPalette = '';
+
+                // prepare palette
+                $paletteName = $this->dcaUtil->getCurrentPaletteName($table, $dc->id);
+                $explodedPalette = $this->explodeByPaletteManipulator($dca['palettes'][$paletteName]);
+                $paletteFields = [];
+
+                foreach ($explodedPalette as $fieldData) {
+                    $paletteFields = array_merge($paletteFields, $fieldData['fields']);
+                }
+
+                $paletteFields = array_unique($paletteFields);
+
+                // prepare sub palettes
+                $explodedSubPalettes = [];
+
+                foreach ($dca['subpalettes'] as $selector => $subpalette) {
+                    $explodedSubPalettes[$selector] = $this->explodeByPaletteManipulator($subpalette);
+                }
+
+                // fix legends
+                $fixedPaletteData = [];
+
+                foreach ($paletteData as $originalField => $fields) {
+                    $legend = $this->getLegendForField($originalField, $explodedPalette, $explodedSubPalettes);
+
+                    if (false === $legend) {
+                        continue;
+                    }
+
+                    if (!isset($fixedPaletteData[$legend])) {
+                        $fixedPaletteData[$legend] = [];
+                    }
+
+                    $fixedPaletteData[$legend][$originalField] = $fields;
+                }
+
+                foreach ($fixedPaletteData as $legend => $fieldData) {
+                    if (!$this->stringUtil->endsWith($legend, '_legend')) {
+                        $legend .= '_legend';
+                    }
+
+                    $fixedPalette .= '{'.$legend.'},';
+
+                    foreach ($fieldData as $originalField => $fields) {
+                        if (!$this->isFieldInActivePalette($originalField, $explodedPalette) &&
+                            !$this->isFieldInSubpalette($originalField, $paletteFields, $explodedSubPalettes)) {
+                            continue;
+                        }
+
+                        $fixedPalette .= $originalField.',';
+
+                        foreach ($fields as $field) {
+                            $fixedPalette .= $field.',';
+                        }
+                    }
+
+                    $fixedPalette = rtrim($fixedPalette, ',');
+
+                    $fixedPalette .= ';';
+                }
+
+                $fixedPalette = 'mf_editLanguages;'.$fixedPalette;
+            } else {
+                $fixedPalette = ('tl_content' === $table && $this->multilingualFieldsUtil->hasContentLanguageField($element) ? 'mf_language,' : '').
+                    'mf_editLanguages;'.$dc->getPalette();
+            }
+
+            foreach (array_keys($dca['palettes']) as $palette) {
+                if ('__selector__' === $palette) {
+                    continue;
+                }
+
+                $dca['palettes'][$palette] = $fixedPalette;
+            }
+        };
+    }
+
+    protected function getLegendForField(string $field, array $explodedPalette, array $explodedSubPalettes)
+    {
+        if (false !== ($legend = $this->findLegendForFieldByPaletteManipulator($explodedPalette, $field))) {
+            return $legend;
         }
 
-        foreach ($config['palettes'] as $palette) {
-            $dca['palettes'][$palette] = $fixedPalette;
+        foreach ($explodedSubPalettes as $selector => $explodedSubPalette) {
+            if (!isset($explodedSubPalette[0]['fields']) || !\is_array($explodedSubPalette[0]['fields'])) {
+                continue;
+            }
+
+            if (false !== strpos($selector, '_')) {
+                $selectorParts = explode('_', $selector);
+
+                if (\in_array($field, $explodedSubPalette[0]['fields'])) {
+                    return $this->findLegendForFieldByPaletteManipulator(
+                        $explodedPalette,
+                        $selectorParts[0]
+                    );
+                }
+            } else {
+                if (\in_array($field, $explodedSubPalette[0]['fields'])) {
+                    return $this->findLegendForFieldByPaletteManipulator(
+                        $explodedPalette,
+                        $selector
+                    );
+                }
+            }
+
+            if (\in_array($field, $explodedSubPalette[0]['fields'])) {
+                return true;
+            }
         }
+
+        return false;
+    }
+
+    protected function addContentLanguageField(): void
+    {
+        if (!$this->multilingualFieldsUtil->hasContentLanguageField()) {
+            return;
+        }
+
+        $multilingualFieldsUtil = $this->multilingualFieldsUtil;
+
+        $dca = &$GLOBALS['TL_DCA']['tl_content'];
+
+        /*
+         * Fields
+         */
+        $dca['fields']['mf_language'] = [
+            'label' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_language'],
+            'exclude' => true,
+            'filter' => true,
+            'inputType' => 'select',
+            'eval' => ['includeBlankOption' => true, 'chosen' => true, 'rgxp' => 'locale', 'tl_class' => 'w50'],
+            'options_callback' => static function () use ($multilingualFieldsUtil) {
+                $languages = \Contao\System::getLanguages();
+
+                foreach ($multilingualFieldsUtil->getLanguages(true) as $language) {
+                    $options[$language] = $languages[$language];
+                }
+
+                asort($options);
+
+                return $options;
+            },
+            'sql' => "varchar(5) NOT NULL default ''",
+        ];
+    }
+
+    protected function explodeByPaletteManipulator(string $palette)
+    {
+        $pm = new PaletteManipulator();
+        $ref = new \ReflectionClass($pm);
+
+        $method = $ref->getMethod('explode');
+        $method->setAccessible(true);
+
+        return $method->invoke($pm, $palette);
+    }
+
+    protected function findLegendForFieldByPaletteManipulator(array $config, string $field)
+    {
+        $pm = new PaletteManipulator();
+        $ref = new \ReflectionClass($pm);
+
+        $method = $ref->getMethod('findLegendForField');
+        $method->setAccessible(true);
+
+        return $method->invoke($pm, $config, $field);
+    }
+
+    protected function isFieldInActivePalette(string $field, array $explodedPalette): bool
+    {
+        foreach ($explodedPalette as $data) {
+            if (\in_array($field, $data['fields'])) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    protected function isFieldInSubpalette(string $field, array $paletteFields, array $explodedSubPalettes)
+    {
+        foreach ($explodedSubPalettes as $selector => $explodedSubPalette) {
+            if (!isset($explodedSubPalette[0]['fields']) || !\is_array($explodedSubPalette[0]['fields'])) {
+                continue;
+            }
+
+            if (false !== strpos($selector, '_')) {
+                $selectorParts = explode('_', $selector);
+
+                if (!\in_array($selectorParts[0], $paletteFields)) {
+                    continue;
+                }
+            } else {
+                if (!\in_array($selector, $paletteFields)) {
+                    continue;
+                }
+            }
+
+            if (\in_array($field, $explodedSubPalette[0]['fields'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
