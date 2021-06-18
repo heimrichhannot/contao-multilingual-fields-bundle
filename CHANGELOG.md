@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.1] - 2021-06-18
+
+- fixed README.md
+
 ## [0.3.0] - 2021-06-18
 
 - fixed palette handling -> now only fields in the current palette are displayed in language edit mode; palettes don't
