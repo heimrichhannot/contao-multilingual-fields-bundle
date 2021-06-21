@@ -10,13 +10,14 @@ namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\Database;
 use Contao\DataContainer;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
 use HeimrichHannot\UtilsBundle\Arrays\ArrayUtil;
 use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
+use HeimrichHannot\UtilsBundle\Database\DatabaseUtil;
 use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
-use HeimrichHannot\UtilsBundle\Model\ModelUtil;
 use HeimrichHannot\UtilsBundle\String\StringUtil;
 use HeimrichHannot\UtilsBundle\Url\UrlUtil;
 
@@ -62,9 +63,9 @@ class LoadDataContainerListener
      */
     protected $multilingualFieldsUtil;
     /**
-     * @var ModelUtil
+     * @var DatabaseUtil
      */
-    protected $modelUtil;
+    protected $databaseUtil;
 
     public function __construct(
         array $bundleConfig,
@@ -75,7 +76,7 @@ class LoadDataContainerListener
         DcaUtil $dcaUtil,
         ContainerUtil $containerUtil,
         ArrayUtil $arrayUtil,
-        ModelUtil $modelUtil
+        DatabaseUtil $databaseUtil
     ) {
         $this->bundleConfig = $bundleConfig;
         $this->multilingualFieldsUtil = $multilingualFieldsUtil;
@@ -85,7 +86,7 @@ class LoadDataContainerListener
         $this->dcaUtil = $dcaUtil;
         $this->containerUtil = $containerUtil;
         $this->arrayUtil = $arrayUtil;
-        $this->modelUtil = $modelUtil;
+        $this->databaseUtil = $databaseUtil;
     }
 
     public function __invoke($table)
@@ -264,8 +265,28 @@ class LoadDataContainerListener
         ];
 
         // create onload callback for the palette generation
-        $dca['config']['onload_callback'][] = function (DataContainer $dc) use ($isEditMode, $paletteData, $config, &$dca, $table) {
-            $paletteName = $this->dcaUtil->getCurrentPaletteName($table, $dc->id) ?: 'default';
+        $dca['config']['onload_callback'][] = function (DataContainer $dc) use ($isEditMode, $paletteData, $config, $table, &$dca) {
+            if (!$dc->id) {
+                return;
+            }
+
+            // check sql condition
+            if (isset($config['sql_condition'])) {
+                $sqlCondition = $config['sql_condition'];
+                $sqlConditionValues = $config['sql_condition_values'] ?? [];
+
+                $values = array_merge([$dc->id], $sqlConditionValues);
+
+                $check = Database::getInstance()->prepare("SELECT id FROM $table WHERE id=? AND $sqlCondition")->limit(1);
+
+                $check = \call_user_func_array([$check, 'execute'], $values);
+
+                if ($check->numRows < 1) {
+                    return;
+                }
+            }
+
+            $paletteName = $this->dcaUtil->getCurrentPaletteName($table, (int) $dc->id) ?: 'default';
 
             // create palette for editing the fields
             if ($isEditMode) {

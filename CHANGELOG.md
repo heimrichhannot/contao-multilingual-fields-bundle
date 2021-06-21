@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.5] - 2021-06-21
+
+- added `sql_condition` and `sql_condition_values` config parameters
+
 ## [0.3.4] - 2021-06-18
 
 - fixed submitOnChange handling

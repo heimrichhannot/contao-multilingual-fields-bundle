@@ -13,7 +13,8 @@ container in the Contao CMS.
 ## Impressions
 
 ![Edit languages button](docs/img/edit-languages-button.png)
-The button for editing the languages (right) and the button for showing certain content elements only for the selected language (left, for `tl_content` only)
+The button for editing the languages (right) and the button for showing certain content elements only for the selected
+language (left, for `tl_content` only)
 
 ![Edit languages](docs/img/edit-languages.png)
 Editors can specify which of the fields should be translated for which languages
@@ -121,6 +122,9 @@ This would end up in your DCA being automatically modified the following way:
        - en
      data_containers:
        tl_member:
+         sql_condition: tl_member.firstname LIKE ? # optional; activate the functionality only for some entities
+         sql_condition_values:
+           - "%%john%%" # be careful about escaping; in yaml the reserved character "%" can't be in first place and need to be be escaped
          fields:
            - { name: position }
    ```
