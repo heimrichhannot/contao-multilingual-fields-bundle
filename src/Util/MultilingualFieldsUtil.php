@@ -9,6 +9,7 @@
 namespace HeimrichHannot\MultilingualFieldsBundle\Util;
 
 use Contao\Controller;
+use Contao\Model;
 use HeimrichHannot\UtilsBundle\Model\ModelUtil;
 use Model\Collection;
 
@@ -45,29 +46,34 @@ class MultilingualFieldsUtil
         }, $this->bundleConfig['data_containers'][$table]['fields']);
     }
 
+    public function translateModel(string $table, Model $model, string $language = ''): ?Model
+    {
+        if (false === ($translatableFields = $this->getTranslatableFields($table))) {
+            return $model;
+        }
+
+        $language = $language ?: $GLOBALS['TL_LANGUAGE'];
+
+        foreach ($translatableFields as $field) {
+            if (!$model->{$language.'_translate_'.$field}) {
+                continue;
+            }
+
+            $model->{$field} = $model->{$language.'_'.$field};
+        }
+
+        return $model;
+    }
+
     /**
      * @param string $table The translated table
      */
     public function translateModels(string $table, Collection $models, string $language = ''): array
     {
-        if (false === ($translatableFields = $this->getTranslatableFields($table))) {
-            return [];
-        }
-
         $result = [];
 
-        $language = $language ?: $GLOBALS['TL_LANGUAGE'];
-
         foreach ($models as $model) {
-            foreach ($translatableFields as $field) {
-                if (!$model->{$language.'_translate_'.$field}) {
-                    continue;
-                }
-
-                $model->{$field} = $model->{$language.'_'.$field};
-            }
-
-            $result[] = $model;
+            $result[] = $this->translateModel($table, $model, $language);
         }
 
         return $result;

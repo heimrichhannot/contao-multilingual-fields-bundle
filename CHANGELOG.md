@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2021-06-24
+
+- added support for multilingual alias fields (see README.md for details)
+- added new insert tags `mf_event_url`, `mf_news_url` and `mf_faq_url` taking into account the translated alias field
+
 ## [0.3.6] - 2021-06-24
 
 - added auto translation in `isVisibleElement` hook for `tl_content`

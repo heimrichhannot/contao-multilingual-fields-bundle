@@ -126,11 +126,19 @@ This would end up in your DCA being automatically modified the following way:
          sql_condition_values:
            - "%%john%%" # be careful about escaping; in yaml the reserved character "%" can't be in first place and need to be be escaped
          fields:
+           - { name: alias, is_alias_field: true, alias_base_field: lastname }
+           - { name: lastname }
            - { name: position }
    ```
 1. Clear the project's cache (`<project_dir>/var/cache`).
 1. Update the database. The new fields should be created now.
 
-## Todo
+## Insert tags
 
-1. translatable aliases
+The following new insert tags are available. These take into account the translated jumpTo url and alias.
+
+Name | Example
+-----|--------
+`{{mf_news_url::<id>::<language>}}` | `{{mf_news_url::1::de}}`
+`{{mf_event_url::<id>::<language>}}` | `{{mf_event_url::5::es}}`
+`{{mf_faq_url::<id>::<language>}}` | `{{mf_faq_url::8::en}}`

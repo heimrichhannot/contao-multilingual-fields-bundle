@@ -48,6 +48,8 @@ class Configuration implements ConfigurationInterface
                                 ->arrayPrototype()
                                     ->children()
                                         ->scalarNode('name')->isRequired()->end()
+                                        ->booleanNode('is_alias_field')->defaultValue(false)->end()
+                                        ->scalarNode('alias_base_field')->end()
                                     ->end()
                                 ->end()
                             ->end()

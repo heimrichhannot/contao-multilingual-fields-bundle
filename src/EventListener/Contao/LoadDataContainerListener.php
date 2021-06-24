@@ -170,6 +170,30 @@ class LoadDataContainerListener
                     $dca['fields'][$translatedFieldname]['eval']['tl_class'] = 'long clr';
                 }
 
+                // alias field?
+                $isAliasField = $fieldConfig['is_alias_field'] ?? false;
+                $aliasBaseField = $fieldConfig['alias_base_field'] ?? false;
+
+                if ($isAliasField && $aliasBaseField) {
+                    $dca['fields'][$translatedFieldname]['save_callback'] = [
+                        function ($value, DataContainer $dc) use ($translatedFieldname, $table, $language, $aliasBaseField) {
+                            $baseFieldValue = $dc->activeRecord->{$language.'_translate_'.$aliasBaseField} ?
+                                $dc->activeRecord->{$language.'_'.$aliasBaseField} : $dc->activeRecord->{$aliasBaseField};
+
+                            return $this->dcaUtil->generateAlias(
+                                $value,
+                                $dc->id,
+                                $table,
+                                $baseFieldValue,
+                                true,
+                                [
+                                    'aliasField' => $translatedFieldname,
+                                ]
+                            );
+                        },
+                    ];
+                }
+
                 // add the original fields as readonly
                 $readOnlyFields[] = $field;
 
