@@ -26,10 +26,10 @@ container. Also, you get a nice and editor-friendly way to edit translations in 
 
 ## What doesn't the bundle do?
 
-This bundle is a utility bundle for just bringing a nice and editor-friendly way to edit translations in the backend.
+Currently for most data containers this bundle is a utility bundle for just bringing a nice and editor-friendly way to edit translations in the backend.
 It's up to you how to use the fields.
 
-**There's no out-of-the-box support for contao's frontend modules!**
+**Besides tl_content there's no out-of-the-box support for contao's frontend modules!**
 
 But you can of course use the created fields in your templates (if the modules passes the data there).
 

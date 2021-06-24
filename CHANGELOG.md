@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.6] - 2021-06-24
+
+- added auto translation in `isVisibleElement` hook for `tl_content`
+
 ## [0.3.5] - 2021-06-21
 
 - added `sql_condition` and `sql_condition_values` config parameters

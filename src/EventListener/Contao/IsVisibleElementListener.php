@@ -44,6 +44,17 @@ class IsVisibleElementListener
             return false;
         }
 
+        // adjust fields
+        if ($this->multilingualFieldsUtil->isTranslatable('tl_content')) {
+            foreach ($this->multilingualFieldsUtil->getTranslatableFields('tl_content') as $field) {
+                if (!$element->{$GLOBALS['TL_LANGUAGE'].'_translate_'.$field}) {
+                    continue;
+                }
+
+                $element->{$field} = $element->{$GLOBALS['TL_LANGUAGE'].'_'.$field};
+            }
+        }
+
         return $return;
     }
 }

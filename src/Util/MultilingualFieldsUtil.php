@@ -29,6 +29,11 @@ class MultilingualFieldsUtil
         $this->modelUtil = $modelUtil;
     }
 
+    public function isTranslatable(string $table)
+    {
+        return isset($this->bundleConfig['data_containers'][$table]);
+    }
+
     public function getTranslatableFields(string $table)
     {
         if (!isset($this->bundleConfig['data_containers'][$table]['fields'])) {
