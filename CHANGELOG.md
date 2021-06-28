@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.1] - 2021-06-28
+
+- fixed sql issues
+
 ## [0.4.0] - 2021-06-24
 
 - added support for multilingual alias fields (see README.md for details)
