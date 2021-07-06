@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.2] - 2021-07-06
+
+- fixed `onload` callback for `ModulePassword`
+
 ## [0.4.1] - 2021-06-28
 
 - fixed sql issues

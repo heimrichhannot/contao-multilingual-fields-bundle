@@ -289,8 +289,8 @@ class LoadDataContainerListener
         ];
 
         // create onload callback for the palette generation
-        $dca['config']['onload_callback'][] = function (DataContainer $dc) use ($isEditMode, $paletteData, $config, $table, &$dca) {
-            if (!$dc->id) {
+        $dca['config']['onload_callback'][] = function (DataContainer $dc = null) use ($isEditMode, $paletteData, $config, $table, &$dca) {
+            if (null === $dc || !$dc->id) {
                 return;
             }
 
