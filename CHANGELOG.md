@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 2021-07-14
+
+- removed `PaletteManipulator` reflection and solved palette handling with existing methods (thanks to @aschempp)
+
 ## [0.4.2] - 2021-07-06
 
 - fixed `onload` callback for `ModulePassword`
