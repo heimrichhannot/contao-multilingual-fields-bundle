@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 2022-08-23
+- Fixed: possible exception in ReplaceInsertTagsListener
+
 ## [0.5.0] - 2021-07-14
 
 - removed `PaletteManipulator` reflection and solved palette handling with existing methods (thanks to @aschempp)

@@ -1,7 +1,7 @@
 <?php
 
 /*
- * Copyright (c) 2021 Heimrich & Hannot GmbH
+ * Copyright (c) 2022 Heimrich & Hannot GmbH
  *
  * @license LGPL-3.0-or-later
  */
@@ -79,11 +79,14 @@ class ReplaceInsertTagsListener
                     );
                 }
 
+                if (empty($GLOBALS['TL_DCA'][$table])) {
+                    Controller::loadDataContainer($table);
+                }
                 $dca = $GLOBALS['TL_DCA'][$table];
 
-                $ptable = $dca['config']['ptable'];
+                $ptable = $dca['config']['ptable'] ?? null;
 
-                if (null === ($archive = $this->modelUtil->findOneModelInstanceBy($ptable, [$ptable.'.id=?'], [$entityObj->pid]))) {
+                if (!$ptable || null === ($archive = $this->modelUtil->findOneModelInstanceBy($ptable, [$ptable.'.id=?'], [$entityObj->pid]))) {
                     return false;
                 }
 
