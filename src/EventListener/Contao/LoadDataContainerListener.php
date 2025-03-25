@@ -18,6 +18,7 @@ use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
 use HeimrichHannot\UtilsBundle\StaticUtil\SUtils;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Hook("loadDataContainer", priority=-256)
@@ -40,6 +41,7 @@ class LoadDataContainerListener
     private Utils $utils;
     private RequestStack $requestStack;
     private Locales $locales;
+    private TranslatorInterface $translator;
 
     public function __construct(
         array $bundleConfig,
@@ -47,7 +49,8 @@ class LoadDataContainerListener
         DcaUtil $dcaUtil,
         Utils $utils,
         RequestStack $requestStack,
-        Locales $locales
+        Locales $locales,
+        TranslatorInterface $translator
     ) {
         $this->bundleConfig = $bundleConfig;
         $this->multilingualFieldsUtil = $multilingualFieldsUtil;
@@ -55,6 +58,7 @@ class LoadDataContainerListener
         $this->utils = $utils;
         $this->requestStack = $requestStack;
         $this->locales = $locales;
+        $this->translator = $translator;
     }
 
     public function __invoke($table)
@@ -236,11 +240,13 @@ class LoadDataContainerListener
             }
         }
 
+        // &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle'][$isEditMode ? 'mf_closeEditLanguages' : 'mf_editLanguages']
+
         // add language switch
         $dca['fields']['mf_editLanguages'] = [
             'inputType' => 'hyperlink',
             'eval' => [
-                'text' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle'][$isEditMode ? 'mf_closeEditLanguages' : 'mf_editLanguages'],
+                'text' => $this->translator->trans('MSC.multilingualFieldsBundle.mf_editLanguages.', [], 'contao_default'),
                 'linkClass' => 'tl_submit',
                 'tl_class' => 'w50 edit-languages',
                 'url' => function (DataContainer $dc) use ($isEditMode) {

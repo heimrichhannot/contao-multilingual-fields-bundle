@@ -18,4 +18,9 @@ class HeimrichHannotMultilingualFieldsBundle extends Bundle
     {
         return new HeimrichHannotMultilingualFieldsExtension();
     }
+
+    public function getPath(): string
+    {
+        return \dirname(__DIR__);
+    }
 }
