@@ -15,6 +15,7 @@ use Contao\ManagerPlugin\Bundle\Config\ConfigInterface;
 use Contao\ManagerPlugin\Bundle\Parser\ParserInterface;
 use Contao\ManagerPlugin\Config\ConfigPluginInterface;
 use HeimrichHannot\MultilingualFieldsBundle\HeimrichHannotMultilingualFieldsBundle;
+use MadeYourDay\RockSolidCustomElements\RockSolidCustomElementsBundle;
 use Symfony\Component\Config\Loader\LoaderInterface;
 
 class Plugin implements BundlePluginInterface, ConfigPluginInterface
@@ -24,21 +25,25 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
      *
      * @return ConfigInterface[]
      */
-    public function getBundles(ParserInterface $parser)
+    public function getBundles(ParserInterface $parser): array
     {
         $loadAfter = [
-            '\MadeYourDay\RockSolidCustomElements\RockSolidCustomElementsBundle',
+            // @phpstan-ignore class.notFound
+            RockSolidCustomElementsBundle::class,
             ContaoCoreBundle::class,
         ];
 
-        return [BundleConfig::create(HeimrichHannotMultilingualFieldsBundle::class)->setLoadAfter($loadAfter)];
+        return [
+            BundleConfig::create(HeimrichHannotMultilingualFieldsBundle::class)
+                ->setLoadAfter($loadAfter)
+        ];
     }
 
     /**
      * Allows a plugin to load container configuration.
      */
-    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig)
+    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig): void
     {
-        $loader->load('@HeimrichHannotMultilingualFieldsBundle/Resources/config/services.yml');
+        $loader->load('@HeimrichHannotMultilingualFieldsBundle/config/services.yaml');
     }
 }

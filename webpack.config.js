@@ -1,9 +1,10 @@
 var Encore = require('@symfony/webpack-encore');
 
 Encore
-    .setOutputPath('src/Resources/public/assets/')
-    .addEntry('contao-multilingual-fields-bundle', './src/Resources/assets/js/contao-multilingual-fields-bundle.js')
-    .setPublicPath('/public/assets/')
+    .setOutputPath('public/assets/')
+    .addEntry('contao-multilingual-fields-bundle', './assets/js/contao-multilingual-fields-bundle.js')
+    .setPublicPath('/bundles/heimrichhannotmultilingualfields/assets/')
+    .setManifestKeyPrefix('bundles/heimrichhannotmultilingualfields/assets')
     .disableSingleRuntimeChunk()
     .enableSassLoader()
     .configureBabel(function (babelConfig) {

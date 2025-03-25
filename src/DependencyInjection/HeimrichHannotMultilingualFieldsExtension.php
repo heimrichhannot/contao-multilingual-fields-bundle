@@ -16,14 +16,17 @@ class HeimrichHannotMultilingualFieldsExtension extends Extension
     /**
      * {@inheritdoc}
      */
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();
 
-        $container->setParameter(Configuration::ROOT_ID, $this->processConfiguration($configuration, $configs));
+        $container->setParameter(
+            Configuration::ROOT_ID,
+            $this->processConfiguration($configuration, $configs)
+        );
     }
 
-    public function getAlias()
+    public function getAlias(): string
     {
         return Configuration::ROOT_ID;
     }

@@ -1,9 +1,7 @@
 services:
-  _defaults:
+  HeimrichHannot\MultilingualFieldsBundle\:
+    resource: '../src/{EventListener,Util}/*'
     public: true
     autowire: true
     bind:
       $bundleConfig: '%huh_multilingual_fields%'
-
-  HeimrichHannot\MultilingualFieldsBundle\:
-    resource: '../../{EventListener,Util}/*'

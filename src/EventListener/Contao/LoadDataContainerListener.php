@@ -8,18 +8,19 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
+use Contao\StringUtil;
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
+use Contao\CoreBundle\Intl\Locales;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\Database;
 use Contao\DataContainer;
+use HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer\LanguageEditSwitchButtonCallback;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
-use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
-use HeimrichHannot\UtilsBundle\Arrays\ArrayUtil;
-use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
-use HeimrichHannot\UtilsBundle\Database\DatabaseUtil;
 use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
-use HeimrichHannot\UtilsBundle\String\StringUtil;
-use HeimrichHannot\UtilsBundle\Url\UrlUtil;
+use HeimrichHannot\UtilsBundle\StaticUtil\SUtils;
+use HeimrichHannot\UtilsBundle\Util\Utils;
+use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Hook("loadDataContainer", priority=-256)
@@ -35,61 +36,34 @@ class LoadDataContainerListener
      */
     protected $bundleConfig;
     /**
-     * @var UrlUtil
-     */
-    protected $urlUtil;
-    /**
-     * @var Request
-     */
-    protected $request;
-    /**
-     * @var StringUtil
-     */
-    protected $stringUtil;
-    /**
      * @var DcaUtil
      */
     protected $dcaUtil;
-    /**
-     * @var ContainerUtil
-     */
-    protected $containerUtil;
-    /**
-     * @var ArrayUtil
-     */
-    protected $arrayUtil;
-    /**
-     * @var MultilingualFieldsUtil
-     */
-    protected $multilingualFieldsUtil;
-    /**
-     * @var DatabaseUtil
-     */
-    protected $databaseUtil;
+    protected MultilingualFieldsUtil $multilingualFieldsUtil;
+    private Utils $utils;
+    private RequestStack $requestStack;
+    private Locales $locales;
+    private TranslatorInterface $translator;
 
     public function __construct(
         array $bundleConfig,
         MultilingualFieldsUtil $multilingualFieldsUtil,
-        UrlUtil $urlUtil,
-        Request $request,
-        StringUtil $stringUtil,
         DcaUtil $dcaUtil,
-        ContainerUtil $containerUtil,
-        ArrayUtil $arrayUtil,
-        DatabaseUtil $databaseUtil
+        Utils $utils,
+        RequestStack $requestStack,
+        Locales $locales,
+        TranslatorInterface $translator
     ) {
         $this->bundleConfig = $bundleConfig;
         $this->multilingualFieldsUtil = $multilingualFieldsUtil;
-        $this->urlUtil = $urlUtil;
-        $this->request = $request;
-        $this->stringUtil = $stringUtil;
         $this->dcaUtil = $dcaUtil;
-        $this->containerUtil = $containerUtil;
-        $this->arrayUtil = $arrayUtil;
-        $this->databaseUtil = $databaseUtil;
+        $this->utils = $utils;
+        $this->requestStack = $requestStack;
+        $this->locales = $locales;
+        $this->translator = $translator;
     }
 
-    public function __invoke($table)
+    public function __invoke($table): void
     {
         // only run once
         if (\in_array($table, static::$processedTables)) {
@@ -98,21 +72,11 @@ class LoadDataContainerListener
 
         static::$processedTables[] = $table;
 
-        $this->initAssets();
         $this->initConfig($table);
 
         if ('tl_content' === $table) {
             $this->addContentLanguageField();
         }
-    }
-
-    protected function initAssets()
-    {
-        if (!$this->containerUtil->isBackend()) {
-            return;
-        }
-
-        $GLOBALS['TL_CSS']['contao-multilingual-fields-bundle'] = 'bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.css';
     }
 
     protected function initConfig($table)
@@ -123,10 +87,11 @@ class LoadDataContainerListener
 
         $config = $this->bundleConfig['data_containers'][$table];
         $languages = $this->bundleConfig['languages'];
+        $request = $this->requestStack->getCurrentRequest();
 
         $dca = &$GLOBALS['TL_DCA'][$table];
 
-        $isEditMode = $this->request->getGet(static::EDIT_LANGUAGES_PARAM);
+        $isEditMode = $request ? $request->query->get(static::EDIT_LANGUAGES_PARAM, false) : false;
 
         // add translated fields
         $paletteData = [];
@@ -268,20 +233,10 @@ class LoadDataContainerListener
         }
 
         // add language switch
+        $langId = $isEditMode ? 'MSC.multilingualFieldsBundle.mf_closeEditLanguages' : 'MSC.multilingualFieldsBundle.mf_editLanguages';
         $dca['fields']['mf_editLanguages'] = [
-            'inputType' => 'hyperlink',
-            'eval' => [
-                'text' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle'][$isEditMode ? 'mf_closeEditLanguages' : 'mf_editLanguages'],
-                'linkClass' => 'tl_submit',
-                'tl_class' => 'w50 edit-languages',
-                'url' => function (DataContainer $dc) use ($isEditMode) {
-                    if ($isEditMode) {
-                        return $this->urlUtil->removeQueryString([static::EDIT_LANGUAGES_PARAM]);
-                    }
-
-                    return $this->urlUtil->addQueryString(static::EDIT_LANGUAGES_PARAM.'=1');
-                },
-            ],
+            'inputType' => 'mf_editLanguages',
+            'input_field_callback' => [LanguageEditSwitchButtonCallback::class, '__invoke'],
         ];
 
         // create onload callback for the palette generation
@@ -322,7 +277,7 @@ class LoadDataContainerListener
                 }
 
                 foreach ($paletteData as $originalField => $fields) {
-                    if (!\in_array($originalField, \Contao\StringUtil::trimsplit('[;,]', $dc->getPalette()))) {
+                    if (!\in_array($originalField, StringUtil::trimsplit('[;,]', $dc->getPalette()))) {
                         if (!$this->dcaUtil->isSubPaletteField($originalField, $table)) {
                             $paletteManipulator->removeField($originalField);
 
@@ -330,7 +285,7 @@ class LoadDataContainerListener
                         }
                         // sub palette field and selector in palette?
                         if (!($selector = $this->dcaUtil->getSubPaletteFieldSelector($originalField, $table)) ||
-                                !\in_array($selector, \Contao\StringUtil::trimsplit('[;,]', $dc->getPalette()))
+                                !\in_array($selector, StringUtil::trimsplit('[;,]', $dc->getPalette()))
                             ) {
                             $paletteManipulator->removeField($originalField);
 
@@ -355,7 +310,7 @@ class LoadDataContainerListener
 
                     // remove selector behavior
                     unset($dca['fields'][$originalField]['eval']['submitOnChange']);
-                    $this->arrayUtil->removeValue($originalField, $dca['palettes']['__selector__']);
+                    SUtils::array()::removeValue($originalField, $dca['palettes']['__selector__']);
                 }
 
                 $paletteManipulator->applyToPalette($paletteName, $table);
@@ -379,20 +334,18 @@ class LoadDataContainerListener
         }
 
         $multilingualFieldsUtil = $this->multilingualFieldsUtil;
+        $locales = $this->locales;
 
         $dca = &$GLOBALS['TL_DCA']['tl_content'];
-
-        /*
-         * Fields
-         */
         $dca['fields']['mf_language'] = [
             'label' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_language'],
             'exclude' => true,
             'filter' => true,
             'inputType' => 'select',
             'eval' => ['includeBlankOption' => true, 'chosen' => true, 'rgxp' => 'locale', 'tl_class' => 'w50'],
-            'options_callback' => static function () use ($multilingualFieldsUtil) {
-                $languages = \Contao\System::getLanguages();
+            'options_callback' => static function () use ($multilingualFieldsUtil, $locales) {
+                $languages = $locales->getLocales(null, true);
+                $options = [];
 
                 foreach ($multilingualFieldsUtil->getLanguages(true) as $language) {
                     $options[$language] = $languages[$language];

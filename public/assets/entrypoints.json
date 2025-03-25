@@ -1,0 +1,12 @@
+{
+  "entrypoints": {
+    "contao-multilingual-fields-bundle": {
+      "css": [
+        "/bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.css"
+      ],
+      "js": [
+        "/bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.js"
+      ]
+    }
+  }
+}
