@@ -3,7 +3,6 @@
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer;
 
 use Contao\DataContainer;
-use Contao\Image;
 use HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao\LoadDataContainerListener;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 use Symfony\Component\HttpFoundation\RequestStack;

@@ -8,6 +8,7 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
+use Contao\StringUtil;
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Contao\CoreBundle\Intl\Locales;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
@@ -62,7 +63,7 @@ class LoadDataContainerListener
         $this->translator = $translator;
     }
 
-    public function __invoke($table)
+    public function __invoke($table): void
     {
         // only run once
         if (\in_array($table, static::$processedTables)) {
@@ -288,7 +289,7 @@ class LoadDataContainerListener
                 }
 
                 foreach ($paletteData as $originalField => $fields) {
-                    if (!\in_array($originalField, \Contao\StringUtil::trimsplit('[;,]', $dc->getPalette()))) {
+                    if (!\in_array($originalField, StringUtil::trimsplit('[;,]', $dc->getPalette()))) {
                         if (!$this->dcaUtil->isSubPaletteField($originalField, $table)) {
                             $paletteManipulator->removeField($originalField);
 
@@ -296,7 +297,7 @@ class LoadDataContainerListener
                         }
                         // sub palette field and selector in palette?
                         if (!($selector = $this->dcaUtil->getSubPaletteFieldSelector($originalField, $table)) ||
-                                !\in_array($selector, \Contao\StringUtil::trimsplit('[;,]', $dc->getPalette()))
+                                !\in_array($selector, StringUtil::trimsplit('[;,]', $dc->getPalette()))
                             ) {
                             $paletteManipulator->removeField($originalField);
 

@@ -8,11 +8,11 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\Util;
 
+use Contao\Model\Collection;
 use Contao\ContentModel;
 use Contao\Controller;
 use Contao\Model;
 use HeimrichHannot\UtilsBundle\Model\ModelUtil;
-use Model\Collection;
 
 class MultilingualFieldsUtil
 {
@@ -42,9 +42,7 @@ class MultilingualFieldsUtil
             return false;
         }
 
-        return array_map(function ($row) {
-            return $row['name'];
-        }, $this->bundleConfig['data_containers'][$table]['fields']);
+        return array_map(fn($row) => $row['name'], $this->bundleConfig['data_containers'][$table]['fields']);
     }
 
     public function translateModel(string $table, Model $model, string $language = ''): ?Model
@@ -82,9 +80,7 @@ class MultilingualFieldsUtil
 
     public function getRenderedMultilingualContentElements(Collection $models): string
     {
-        return implode('', array_map(function ($element) {
-            return Controller::getContentElement($element);
-        }, $this->translateModels('tl_content', $models)));
+        return implode('', array_map(fn($element) => Controller::getContentElement($element), $this->translateModels('tl_content', $models)));
     }
 
     public function hasContentLanguageField($element = null): bool
