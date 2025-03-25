@@ -52,7 +52,6 @@ class LanguageEditSwitchButtonCallback
             '<div class="w50 widget" id="mf_language_edit_switch_button_widget"><a href="%s" class="%s" id="mf_language_edit_switch_button">%s</a></div>',
             $href,
             $class,
-//            Image::getPath($isEditMode ? 'back.svg' : 'edit.svg'),
             $text
         );
     }

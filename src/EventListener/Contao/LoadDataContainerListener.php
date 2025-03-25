@@ -237,18 +237,6 @@ class LoadDataContainerListener
         $dca['fields']['mf_editLanguages'] = [
             'inputType' => 'mf_editLanguages',
             'input_field_callback' => [LanguageEditSwitchButtonCallback::class, '__invoke'],
-//            'eval' => [
-//                'text' => $this->translator->trans($langId, [], 'contao_default'),
-//                'linkClass' => 'tl_submit',
-//                'tl_class' => 'w50 edit-languages',
-//                'url' => function (DataContainer $dc) use ($isEditMode) {
-//                    if ($isEditMode) {
-//                        return $this->utils->url()->removeQueryStringParameterFromUrl(static::EDIT_LANGUAGES_PARAM);
-//                    }
-//
-//                    return $this->utils->url()->addQueryStringParameterToUrl(static::EDIT_LANGUAGES_PARAM.'=1');
-//                },
-//            ],
         ];
 
         // create onload callback for the palette generation
