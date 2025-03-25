@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.2] - 2025-03-25
+- Added: php8 support ([#1](https://github.com/heimrichhannot/contao-multilingual-fields-bundle/pull/1))
+- Changed: edit button layout and position ([#1](https://github.com/heimrichhannot/contao-multilingual-fields-bundle/pull/1))
+- Changed: dropped support for php < 7.4 ([#1](https://github.com/heimrichhannot/contao-multilingual-fields-bundle/pull/1))
+- Changed: removed request bundle and be_hyperlink bundle dependency ([#1](https://github.com/heimrichhannot/contao-multilingual-fields-bundle/pull/1))
+- Changed: a lot of internal refactoring and moderization ([#1](https://github.com/heimrichhannot/contao-multilingual-fields-bundle/pull/1))
+
 ## [0.5.1] - 2022-08-23
 - Fixed: possible exception in ReplaceInsertTagsListener
 
