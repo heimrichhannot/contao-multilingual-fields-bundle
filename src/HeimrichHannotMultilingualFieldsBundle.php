@@ -9,11 +9,12 @@
 namespace HeimrichHannot\MultilingualFieldsBundle;
 
 use HeimrichHannot\MultilingualFieldsBundle\DependencyInjection\HeimrichHannotMultilingualFieldsExtension;
+use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 
 class HeimrichHannotMultilingualFieldsBundle extends Bundle
 {
-    public function getContainerExtension()
+    public function getContainerExtension(): ExtensionInterface
     {
         return new HeimrichHannotMultilingualFieldsExtension();
     }

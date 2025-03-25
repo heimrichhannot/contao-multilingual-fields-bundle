@@ -9,17 +9,15 @@
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
+use Contao\CoreBundle\Intl\Locales;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\Database;
 use Contao\DataContainer;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
-use HeimrichHannot\RequestBundle\Component\HttpFoundation\Request;
-use HeimrichHannot\UtilsBundle\Arrays\ArrayUtil;
-use HeimrichHannot\UtilsBundle\Container\ContainerUtil;
-use HeimrichHannot\UtilsBundle\Database\DatabaseUtil;
 use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
-use HeimrichHannot\UtilsBundle\String\StringUtil;
-use HeimrichHannot\UtilsBundle\Url\UrlUtil;
+use HeimrichHannot\UtilsBundle\StaticUtil\SUtils;
+use HeimrichHannot\UtilsBundle\Util\Utils;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * @Hook("loadDataContainer", priority=-256)
@@ -35,58 +33,28 @@ class LoadDataContainerListener
      */
     protected $bundleConfig;
     /**
-     * @var UrlUtil
-     */
-    protected $urlUtil;
-    /**
-     * @var Request
-     */
-    protected $request;
-    /**
-     * @var StringUtil
-     */
-    protected $stringUtil;
-    /**
      * @var DcaUtil
      */
     protected $dcaUtil;
-    /**
-     * @var ContainerUtil
-     */
-    protected $containerUtil;
-    /**
-     * @var ArrayUtil
-     */
-    protected $arrayUtil;
-    /**
-     * @var MultilingualFieldsUtil
-     */
-    protected $multilingualFieldsUtil;
-    /**
-     * @var DatabaseUtil
-     */
-    protected $databaseUtil;
+    protected MultilingualFieldsUtil $multilingualFieldsUtil;
+    private Utils $utils;
+    private RequestStack $requestStack;
+    private Locales $locales;
 
     public function __construct(
         array $bundleConfig,
         MultilingualFieldsUtil $multilingualFieldsUtil,
-        UrlUtil $urlUtil,
-        Request $request,
-        StringUtil $stringUtil,
         DcaUtil $dcaUtil,
-        ContainerUtil $containerUtil,
-        ArrayUtil $arrayUtil,
-        DatabaseUtil $databaseUtil
+        Utils $utils,
+        RequestStack $requestStack,
+        Locales $locales
     ) {
         $this->bundleConfig = $bundleConfig;
         $this->multilingualFieldsUtil = $multilingualFieldsUtil;
-        $this->urlUtil = $urlUtil;
-        $this->request = $request;
-        $this->stringUtil = $stringUtil;
         $this->dcaUtil = $dcaUtil;
-        $this->containerUtil = $containerUtil;
-        $this->arrayUtil = $arrayUtil;
-        $this->databaseUtil = $databaseUtil;
+        $this->utils = $utils;
+        $this->requestStack = $requestStack;
+        $this->locales = $locales;
     }
 
     public function __invoke($table)
@@ -108,7 +76,7 @@ class LoadDataContainerListener
 
     protected function initAssets()
     {
-        if (!$this->containerUtil->isBackend()) {
+        if (!$this->utils->container()->isBackend()) {
             return;
         }
 
@@ -123,10 +91,11 @@ class LoadDataContainerListener
 
         $config = $this->bundleConfig['data_containers'][$table];
         $languages = $this->bundleConfig['languages'];
+        $request = $this->requestStack->getCurrentRequest();
 
         $dca = &$GLOBALS['TL_DCA'][$table];
 
-        $isEditMode = $this->request->getGet(static::EDIT_LANGUAGES_PARAM);
+        $isEditMode = $request ? $request->query->get(static::EDIT_LANGUAGES_PARAM, false) : false;
 
         // add translated fields
         $paletteData = [];
@@ -276,10 +245,10 @@ class LoadDataContainerListener
                 'tl_class' => 'w50 edit-languages',
                 'url' => function (DataContainer $dc) use ($isEditMode) {
                     if ($isEditMode) {
-                        return $this->urlUtil->removeQueryString([static::EDIT_LANGUAGES_PARAM]);
+                        return $this->utils->url()->removeQueryStringParameterFromUrl(static::EDIT_LANGUAGES_PARAM);
                     }
 
-                    return $this->urlUtil->addQueryString(static::EDIT_LANGUAGES_PARAM.'=1');
+                    return $this->utils->url()->addQueryStringParameterToUrl(static::EDIT_LANGUAGES_PARAM.'=1');
                 },
             ],
         ];
@@ -355,7 +324,7 @@ class LoadDataContainerListener
 
                     // remove selector behavior
                     unset($dca['fields'][$originalField]['eval']['submitOnChange']);
-                    $this->arrayUtil->removeValue($originalField, $dca['palettes']['__selector__']);
+                    SUtils::array()::removeValue($originalField, $dca['palettes']['__selector__']);
                 }
 
                 $paletteManipulator->applyToPalette($paletteName, $table);
@@ -392,7 +361,7 @@ class LoadDataContainerListener
             'inputType' => 'select',
             'eval' => ['includeBlankOption' => true, 'chosen' => true, 'rgxp' => 'locale', 'tl_class' => 'w50'],
             'options_callback' => static function () use ($multilingualFieldsUtil) {
-                $languages = \Contao\System::getLanguages();
+                $languages = $this->locales->getLocales(null, true);
 
                 foreach ($multilingualFieldsUtil->getLanguages(true) as $language) {
                     $options[$language] = $languages[$language];

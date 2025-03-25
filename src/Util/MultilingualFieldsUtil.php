@@ -8,6 +8,7 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\Util;
 
+use Contao\ContentModel;
 use Contao\Controller;
 use Contao\Model;
 use HeimrichHannot\UtilsBundle\Model\ModelUtil;
@@ -92,7 +93,7 @@ class MultilingualFieldsUtil
             return false;
         }
 
-        if (null !== ($element = $this->modelUtil->findModelInstanceByPk('tl_content', $element))) {
+        if (null !== ($element = ContentModel::findByPk($element))) {
             if (!isset($this->bundleConfig['content_language_select']['types']) || !\is_array($this->bundleConfig['content_language_select']['types']) ||
                 empty($this->bundleConfig['content_language_select']['types'])) {
                 return true;

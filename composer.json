@@ -24,11 +24,14 @@
         "issues": "https://github.com/heimrichhannot/contao-multilingual-fields-bundle/issues"
     },
     "require": {
-        "php": "^7.2",
+        "php": "^7.2 || ^8.0",
         "contao/core-bundle": "^4.9",
         "heimrichhannot/contao-be_hyperlink-bundle": "^2.0",
         "heimrichhannot/contao-utils-bundle": "^2.198",
-        "heimrichhannot/contao-request-bundle": "^1.2"
+        "heimrichhannot/contao-request-bundle": "^1.2",
+        "symfony/config": "^4.4 || ^5.0",
+        "symfony/dependency-injection": "^4.4 || ^5.0",
+        "symfony/http-foundation": "^4.4 || ^5.0"
     },
     "require-dev": {
         "contao/test-case": "1.1.*",

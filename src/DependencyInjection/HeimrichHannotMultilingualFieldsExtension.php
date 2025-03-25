@@ -20,10 +20,13 @@ class HeimrichHannotMultilingualFieldsExtension extends Extension
     {
         $configuration = new Configuration();
 
-        $container->setParameter(Configuration::ROOT_ID, $this->processConfiguration($configuration, $configs));
+        $container->setParameter(
+            Configuration::ROOT_ID,
+            $this->processConfiguration($configuration, $configs)
+        );
     }
 
-    public function getAlias()
+    public function getAlias(): string
     {
         return Configuration::ROOT_ID;
     }

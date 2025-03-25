@@ -24,7 +24,7 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
      *
      * @return ConfigInterface[]
      */
-    public function getBundles(ParserInterface $parser)
+    public function getBundles(ParserInterface $parser): array
     {
         $loadAfter = [
             '\MadeYourDay\RockSolidCustomElements\RockSolidCustomElementsBundle',
@@ -37,7 +37,7 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
     /**
      * Allows a plugin to load container configuration.
      */
-    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig)
+    public function registerContainerConfiguration(LoaderInterface $loader, array $managerConfig): void
     {
         $loader->load('@HeimrichHannotMultilingualFieldsBundle/Resources/config/services.yml');
     }
