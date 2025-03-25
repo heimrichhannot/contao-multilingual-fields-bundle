@@ -13,6 +13,7 @@ use Contao\CoreBundle\Intl\Locales;
 use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\Database;
 use Contao\DataContainer;
+use HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer\LanguageEditSwitchButtonCallback;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
 use HeimrichHannot\UtilsBundle\StaticUtil\SUtils;
@@ -70,21 +71,11 @@ class LoadDataContainerListener
 
         static::$processedTables[] = $table;
 
-        $this->initAssets();
         $this->initConfig($table);
 
         if ('tl_content' === $table) {
             $this->addContentLanguageField();
         }
-    }
-
-    protected function initAssets()
-    {
-        if (!$this->utils->container()->isBackend()) {
-            return;
-        }
-
-        $GLOBALS['TL_CSS']['contao-multilingual-fields-bundle'] = 'bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.css';
     }
 
     protected function initConfig($table)
@@ -240,23 +231,23 @@ class LoadDataContainerListener
             }
         }
 
-        // &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle'][$isEditMode ? 'mf_closeEditLanguages' : 'mf_editLanguages']
-
         // add language switch
+        $langId = $isEditMode ? 'MSC.multilingualFieldsBundle.mf_closeEditLanguages' : 'MSC.multilingualFieldsBundle.mf_editLanguages';
         $dca['fields']['mf_editLanguages'] = [
-            'inputType' => 'hyperlink',
-            'eval' => [
-                'text' => $this->translator->trans('MSC.multilingualFieldsBundle.mf_editLanguages.', [], 'contao_default'),
-                'linkClass' => 'tl_submit',
-                'tl_class' => 'w50 edit-languages',
-                'url' => function (DataContainer $dc) use ($isEditMode) {
-                    if ($isEditMode) {
-                        return $this->utils->url()->removeQueryStringParameterFromUrl(static::EDIT_LANGUAGES_PARAM);
-                    }
-
-                    return $this->utils->url()->addQueryStringParameterToUrl(static::EDIT_LANGUAGES_PARAM.'=1');
-                },
-            ],
+            'inputType' => 'mf_editLanguages',
+            'input_field_callback' => [LanguageEditSwitchButtonCallback::class, '__invoke'],
+//            'eval' => [
+//                'text' => $this->translator->trans($langId, [], 'contao_default'),
+//                'linkClass' => 'tl_submit',
+//                'tl_class' => 'w50 edit-languages',
+//                'url' => function (DataContainer $dc) use ($isEditMode) {
+//                    if ($isEditMode) {
+//                        return $this->utils->url()->removeQueryStringParameterFromUrl(static::EDIT_LANGUAGES_PARAM);
+//                    }
+//
+//                    return $this->utils->url()->addQueryStringParameterToUrl(static::EDIT_LANGUAGES_PARAM.'=1');
+//                },
+//            ],
         ];
 
         // create onload callback for the palette generation

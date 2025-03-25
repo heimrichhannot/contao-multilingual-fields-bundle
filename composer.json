@@ -26,7 +26,6 @@
     "require": {
         "php": "^7.4 || ^8.0",
         "contao/core-bundle": "^4.9",
-        "heimrichhannot/contao-be_hyperlink-bundle": "^2.0",
         "heimrichhannot/contao-utils-bundle": "^2.241",
         "symfony/config": "^4.4 || ^5.0",
         "symfony/dependency-injection": "^4.4 || ^5.0",

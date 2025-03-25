@@ -1,4 +1,6 @@
 {
-  "public/assets/contao-multilingual-fields-bundle.css": "/public/assets/contao-multilingual-fields-bundle.css",
-  "public/assets/contao-multilingual-fields-bundle.js": "/public/assets/contao-multilingual-fields-bundle.js"
+  "bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.css": "/bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.css",
+  "bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.js": "/bundles/heimrichhannotmultilingualfields/assets/contao-multilingual-fields-bundle.js",
+  "bundles/heimrichhannotmultilingualfields/assets/images/pencil-off.svg": "/bundles/heimrichhannotmultilingualfields/assets/images/pencil-off.ba7989e0.svg",
+  "bundles/heimrichhannotmultilingualfields/assets/images/pencil.svg": "/bundles/heimrichhannotmultilingualfields/assets/images/pencil.33ceff4e.svg"
 }
