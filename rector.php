@@ -22,7 +22,10 @@ return RectorConfig::configure()
          ExplicitNullableParamTypeRector::class
     ])
 
-    ->withImportNames(importShortClasses: false, removeUnusedImports: true)
+    ->withImportNames(
+        importShortClasses: false,
+        removeUnusedImports: true
+    )
     ->withSets([
         LevelSetList::UP_TO_PHP_74,
         SymfonySetList::SYMFONY_44,

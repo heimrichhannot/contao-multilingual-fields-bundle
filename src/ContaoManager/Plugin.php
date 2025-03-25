@@ -28,6 +28,7 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
     public function getBundles(ParserInterface $parser): array
     {
         $loadAfter = [
+            // @phpstan-ignore class.notFound
             RockSolidCustomElementsBundle::class,
             ContaoCoreBundle::class,
         ];

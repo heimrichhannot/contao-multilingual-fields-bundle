@@ -346,20 +346,18 @@ class LoadDataContainerListener
         }
 
         $multilingualFieldsUtil = $this->multilingualFieldsUtil;
+        $locales = $this->locales;
 
         $dca = &$GLOBALS['TL_DCA']['tl_content'];
-
-        /*
-         * Fields
-         */
         $dca['fields']['mf_language'] = [
             'label' => &$GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_language'],
             'exclude' => true,
             'filter' => true,
             'inputType' => 'select',
             'eval' => ['includeBlankOption' => true, 'chosen' => true, 'rgxp' => 'locale', 'tl_class' => 'w50'],
-            'options_callback' => static function () use ($multilingualFieldsUtil) {
-                $languages = $this->locales->getLocales(null, true);
+            'options_callback' => static function () use ($multilingualFieldsUtil, $locales) {
+                $languages = $locales->getLocales(null, true);
+                $options = [];
 
                 foreach ($multilingualFieldsUtil->getLanguages(true) as $language) {
                     $options[$language] = $languages[$language];
