@@ -7,8 +7,7 @@ class MultilingualTable
     public function __construct(
         private readonly array $fields = [],
         public readonly array $languages = [],
-    )
-    {
+    ) {
     }
 
     /**

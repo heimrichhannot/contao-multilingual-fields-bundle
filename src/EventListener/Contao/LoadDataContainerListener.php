@@ -9,8 +9,8 @@
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
 use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
-use Contao\CoreBundle\Slug\Slug;
 use Contao\CoreBundle\Intl\Locales;
+use Contao\CoreBundle\Slug\Slug;
 use Contao\Database;
 use Contao\DataContainer;
 use HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer\ConfigOnPaletteListener;
@@ -27,14 +27,13 @@ class LoadDataContainerListener
     protected static $processedTables = [];
 
     public function __construct(
-        private array                    $bundleConfig,
+        private array $bundleConfig,
         protected MultilingualFieldsUtil $multilingualFieldsUtil,
-        private readonly RequestStack    $requestStack,
-        private readonly Locales         $locales,
-        private readonly Slug            $slug,
-        private readonly DcaUtil         $dcaUtil,
-    )
-    {
+        private readonly RequestStack $requestStack,
+        private readonly Locales $locales,
+        private readonly Slug $slug,
+        private readonly DcaUtil $dcaUtil,
+    ) {
         $this->bundleConfig = $bundleConfig;
     }
 
@@ -85,8 +84,6 @@ class LoadDataContainerListener
                 $fieldDca = $dca['fields'][$field];
                 $languageName = $this->locales->getLocales(null)[$language] ?? $language;
 
-
-
                 // adjust the label
                 if (isset($dca['fields'][$field]['label'])) {
                     $label = $dca['fields'][$field]['label'];
@@ -94,7 +91,7 @@ class LoadDataContainerListener
                     $label = $GLOBALS['TL_LANG'][$table][$field];
                 }
 
-                $translatedLabel[0] = ((string)$label[0]) . ' (' . $languageName . ')';
+                $translatedLabel[0] = ((string) $label[0]) . ' (' . $languageName . ')';
                 $translatedLabel[1] = $label[1];
 
                 // release the reference
@@ -203,7 +200,12 @@ class LoadDataContainerListener
             'exclude' => true,
             'filter' => true,
             'inputType' => 'select',
-            'eval' => ['includeBlankOption' => true, 'chosen' => true, 'rgxp' => 'locale', 'tl_class' => 'w50'],
+            'eval' => [
+                'includeBlankOption' => true,
+                'chosen' => true,
+                'rgxp' => 'locale',
+                'tl_class' => 'w50',
+            ],
             'options_callback' => static function () use ($multilingualFieldsUtil, $locales) {
                 $languages = $locales->getLocales(null, true);
                 $options = [];
@@ -237,22 +239,22 @@ class LoadDataContainerListener
                     ? $currentRecord[$language . '_' . $aliasBaseField]
                     : $currentRecord[$aliasBaseField];
 
-                $aliasExists = (static fn(string $alias): bool => Database::getInstance()
-                        ->prepare("SELECT id FROM $dc->table WHERE $translatedFieldName=? AND id!=?")
-                        ->execute($alias, $dc->id)
-                        ->numRows > 0);
+                $aliasExists = (static fn (string $alias): bool => Database::getInstance()
+                    ->prepare("SELECT id FROM $dc->table WHERE $translatedFieldName=? AND id!=?")
+                    ->execute($alias, $dc->id)
+                    ->numRows > 0);
 
                 // Generate an alias if there is none
                 if (!$value) {
                     $value = $slug->generate($baseFieldValue, [], $aliasExists);
-                } elseif (preg_match('/^[1-9]\d*$/', (string)$value)) {
+                } elseif (preg_match('/^[1-9]\d*$/', (string) $value)) {
                     throw new \Exception(sprintf($GLOBALS['TL_LANG']['ERR']['aliasNumeric'], $value));
                 } elseif ($aliasExists($value)) {
                     throw new \Exception(sprintf($GLOBALS['TL_LANG']['ERR']['aliasExists'], $value));
                 }
 
                 return $value;
-            }
+            },
         ];
     }
 }

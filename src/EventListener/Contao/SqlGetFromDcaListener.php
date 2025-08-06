@@ -19,9 +19,6 @@ class SqlGetFromDcaListener
      */
     protected $multilingualFieldsUtil;
 
-    /**
-     * SqlGetFromDcaListener constructor.
-     */
     public function __construct(MultilingualFieldsUtil $multilingualFieldsUtil)
     {
         $this->multilingualFieldsUtil = $multilingualFieldsUtil;

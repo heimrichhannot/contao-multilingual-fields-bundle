@@ -15,8 +15,10 @@ use HeimrichHannot\UtilsBundle\Util\Utils;
 #[AsHook('isVisibleElement')]
 class IsVisibleElementListener
 {
-    public function __construct(protected MultilingualFieldsUtil $multilingualFieldsUtil, private Utils $utils)
-    {
+    public function __construct(
+        protected MultilingualFieldsUtil $multilingualFieldsUtil,
+        private Utils $utils,
+    ) {
     }
 
     public function __invoke($element, $return)
@@ -32,11 +34,11 @@ class IsVisibleElementListener
         // adjust fields
         if ($this->multilingualFieldsUtil->isTranslatable('tl_content')) {
             foreach ($this->multilingualFieldsUtil->getTranslatableFields('tl_content') as $field) {
-                if (!$element->{$GLOBALS['TL_LANGUAGE'].'_translate_'.$field}) {
+                if (!$element->{$GLOBALS['TL_LANGUAGE'] . '_translate_' . $field}) {
                     continue;
                 }
 
-                $element->{$field} = $element->{$GLOBALS['TL_LANGUAGE'].'_'.$field};
+                $element->{$field} = $element->{$GLOBALS['TL_LANGUAGE'] . '_' . $field};
             }
         }
 

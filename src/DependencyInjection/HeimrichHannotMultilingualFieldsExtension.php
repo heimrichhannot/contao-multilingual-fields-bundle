@@ -13,9 +13,6 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 
 class HeimrichHannotMultilingualFieldsExtension extends Extension
 {
-    /**
-     * {@inheritdoc}
-     */
     public function load(array $configs, ContainerBuilder $container): void
     {
         $configuration = new Configuration();

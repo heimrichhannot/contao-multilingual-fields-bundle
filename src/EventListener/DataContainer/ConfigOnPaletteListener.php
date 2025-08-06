@@ -16,13 +16,12 @@ class ConfigOnPaletteListener
         private readonly RequestStack $requestStack,
         private readonly MultilingualFieldsUtil $fieldsUtil,
         private readonly TableBuilder $tableBuilder,
-    )
-    {
+    ) {
     }
 
     public function __invoke(string $palette, DataContainer $dc): string
     {
-        $isEditMode = (bool)$this->requestStack->getCurrentRequest()
+        $isEditMode = (bool) $this->requestStack->getCurrentRequest()
             ?->query->get(LoadDataContainerListener::EDIT_LANGUAGES_PARAM, false) ?? false;
 
         return match ($isEditMode) {
@@ -38,7 +37,8 @@ class ConfigOnPaletteListener
         if ('tl_content' === $dc->table && $this->fieldsUtil->hasContentLanguageField($dc->id)) {
             $prependPalette = 'mf_language,' . $prependPalette;
         }
-        return $prependPalette.$palette;
+
+        return $prependPalette . $palette;
     }
 
     private function buildEditPalette(string $originalPalette, DataContainer $dc): string

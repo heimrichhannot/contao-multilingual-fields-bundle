@@ -35,7 +35,7 @@ class Plugin implements BundlePluginInterface, ConfigPluginInterface
 
         return [
             BundleConfig::create(HeimrichHannotMultilingualFieldsBundle::class)
-                ->setLoadAfter($loadAfter)
+                ->setLoadAfter($loadAfter),
         ];
     }
 

@@ -9,8 +9,7 @@ class TableBuilder
 {
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
-    )
-    {
+    ) {
     }
 
     public function buildTableFor(string $table): ?MultilingualTable

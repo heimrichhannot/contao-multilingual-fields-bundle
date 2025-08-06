@@ -8,18 +8,16 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\Util;
 
-use Contao\Model\Collection;
 use Contao\ContentModel;
 use Contao\Controller;
 use Contao\Model;
+use Contao\Model\Collection;
 
 class MultilingualFieldsUtil
 {
-
     public function __construct(
-        protected array $bundleConfig
-    )
-    {
+        protected array $bundleConfig,
+    ) {
     }
 
     public function isTranslatable(string $table)
@@ -33,7 +31,7 @@ class MultilingualFieldsUtil
             return false;
         }
 
-        return array_map(fn($row) => $row['name'], $this->bundleConfig['data_containers'][$table]['fields']);
+        return array_map(fn ($row) => $row['name'], $this->bundleConfig['data_containers'][$table]['fields']);
     }
 
     public function translateModel(string $table, Model $model, string $language = ''): ?Model
@@ -45,11 +43,11 @@ class MultilingualFieldsUtil
         $language = $language ?: $GLOBALS['TL_LANGUAGE'];
 
         foreach ($translatableFields as $field) {
-            if (!$model->{$language.'_translate_'.$field}) {
+            if (!$model->{$language . '_translate_' . $field}) {
                 continue;
             }
 
-            $model->{$field} = $model->{$language.'_'.$field};
+            $model->{$field} = $model->{$language . '_' . $field};
         }
 
         return $model;
@@ -71,7 +69,7 @@ class MultilingualFieldsUtil
 
     public function getRenderedMultilingualContentElements(Collection $models): string
     {
-        return implode('', array_map(fn($element) => Controller::getContentElement($element), $this->translateModels('tl_content', $models)));
+        return implode('', array_map(fn ($element) => Controller::getContentElement($element), $this->translateModels('tl_content', $models)));
     }
 
     public function hasContentLanguageField($element = null): bool
@@ -81,8 +79,8 @@ class MultilingualFieldsUtil
         }
 
         if (null !== ($element = ContentModel::findByPk($element))) {
-            if (!isset($this->bundleConfig['content_language_select']['types']) || !\is_array($this->bundleConfig['content_language_select']['types']) ||
-                empty($this->bundleConfig['content_language_select']['types'])) {
+            if (!isset($this->bundleConfig['content_language_select']['types']) || !\is_array($this->bundleConfig['content_language_select']['types'])
+                || empty($this->bundleConfig['content_language_select']['types'])) {
                 return true;
             }
 

@@ -37,7 +37,7 @@ class DcaUtil
                 case 'metaWizard':
                 case 'tagsinput':
                     $data['eval']['readonly'] = true;
-                    $data['eval']['tl_class'] = $data['eval']['tl_class'].' readonly';
+                    $data['eval']['tl_class'] = $data['eval']['tl_class'] . ' readonly';
 
                     break;
 
