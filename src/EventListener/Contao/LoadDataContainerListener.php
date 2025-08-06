@@ -8,6 +8,7 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
+use Contao\CoreBundle\Slug\Slug;
 use Contao\StringUtil;
 use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Contao\CoreBundle\Intl\Locales;
@@ -15,12 +16,10 @@ use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\Database;
 use Contao\DataContainer;
 use HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer\LanguageEditSwitchButtonCallback;
+use HeimrichHannot\MultilingualFieldsBundle\Util\DcaUtil;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
-use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
 use HeimrichHannot\UtilsBundle\StaticUtil\SUtils;
-use HeimrichHannot\UtilsBundle\Util\Utils;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Hook("loadDataContainer", priority=-256)
@@ -35,32 +34,23 @@ class LoadDataContainerListener
      * @var array
      */
     protected $bundleConfig;
-    /**
-     * @var DcaUtil
-     */
-    protected $dcaUtil;
     protected MultilingualFieldsUtil $multilingualFieldsUtil;
-    private Utils $utils;
     private RequestStack $requestStack;
     private Locales $locales;
-    private TranslatorInterface $translator;
 
     public function __construct(
         array $bundleConfig,
         MultilingualFieldsUtil $multilingualFieldsUtil,
-        DcaUtil $dcaUtil,
-        Utils $utils,
         RequestStack $requestStack,
         Locales $locales,
-        TranslatorInterface $translator
-    ) {
+        private readonly Slug $slug,
+        private readonly DcaUtil $dcaUtil,
+    )
+    {
         $this->bundleConfig = $bundleConfig;
         $this->multilingualFieldsUtil = $multilingualFieldsUtil;
-        $this->dcaUtil = $dcaUtil;
-        $this->utils = $utils;
         $this->requestStack = $requestStack;
         $this->locales = $locales;
-        $this->translator = $translator;
     }
 
     public function __invoke($table): void
@@ -105,8 +95,8 @@ class LoadDataContainerListener
             }
 
             foreach ($languages as $language) {
-                $translatedFieldname = $language.'_'.$field;
-                $selectorField = $language.'_translate_'.$field;
+                $translatedFieldname = $language . '_' . $field;
+                $selectorField = $language . '_translate_' . $field;
                 $fieldDca = $dca['fields'][$field];
 
                 // adjust the label
@@ -116,7 +106,7 @@ class LoadDataContainerListener
                     $label = $GLOBALS['TL_LANG'][$table][$field];
                 }
 
-                $translatedLabel[0] = ((string) $label[0]).' ('.$GLOBALS['TL_LANG']['LNG'][$language].')';
+                $translatedLabel[0] = ((string)$label[0]) . ' (' . $GLOBALS['TL_LANG']['LNG'][$language] . ')';
                 $translatedLabel[1] = $label[1];
 
                 // release the reference
@@ -135,29 +125,7 @@ class LoadDataContainerListener
                     $dca['fields'][$translatedFieldname]['eval']['tl_class'] = 'long clr';
                 }
 
-                // alias field?
-                $isAliasField = $fieldConfig['is_alias_field'] ?? false;
-                $aliasBaseField = $fieldConfig['alias_base_field'] ?? false;
-
-                if ($isAliasField && $aliasBaseField) {
-                    $dca['fields'][$translatedFieldname]['save_callback'] = [
-                        function ($value, DataContainer $dc) use ($translatedFieldname, $table, $language, $aliasBaseField) {
-                            $baseFieldValue = $dc->activeRecord->{$language.'_translate_'.$aliasBaseField} ?
-                                $dc->activeRecord->{$language.'_'.$aliasBaseField} : $dc->activeRecord->{$aliasBaseField};
-
-                            return $this->dcaUtil->generateAlias(
-                                $value,
-                                $dc->id,
-                                $table,
-                                $baseFieldValue,
-                                true,
-                                [
-                                    'aliasField' => $translatedFieldname,
-                                ]
-                            );
-                        },
-                    ];
-                }
+                $this->handleAliasField($dca, $fieldConfig, $translatedFieldname, $language);
 
                 // add the original fields as readonly
                 $readOnlyFields[] = $field;
@@ -261,7 +229,9 @@ class LoadDataContainerListener
                 }
             }
 
-            $paletteName = $this->dcaUtil->getCurrentPaletteName($table, (int) $dc->id) ?: 'default';
+
+
+            $paletteName = $dc->getPalette() ?: 'default';
 
             // create palette for editing the fields
             if ($isEditMode) {
@@ -285,8 +255,8 @@ class LoadDataContainerListener
                         }
                         // sub palette field and selector in palette?
                         if (!($selector = $this->dcaUtil->getSubPaletteFieldSelector($originalField, $table)) ||
-                                !\in_array($selector, StringUtil::trimsplit('[;,]', $dc->getPalette()))
-                            ) {
+                            !\in_array($selector, StringUtil::trimsplit('[;,]', $dc->getPalette()))
+                        ) {
                             $paletteManipulator->removeField($originalField);
 
                             continue;
@@ -315,14 +285,14 @@ class LoadDataContainerListener
 
                 $paletteManipulator->applyToPalette($paletteName, $table);
 
-                $dca['palettes'][$paletteName] = 'mf_editLanguages;'.$dca['palettes'][$paletteName];
+                $dca['palettes'][$paletteName] = 'mf_editLanguages;' . $dca['palettes'][$paletteName];
             } else {
-                if ('tl_content' === $table) {
-                    $dca['palettes'][$paletteName] = ($this->multilingualFieldsUtil->hasContentLanguageField($dc->id) ? 'mf_language,' : '').
-                        'mf_editLanguages;'.$dca['palettes'][$paletteName];
-                } else {
-                    $dca['palettes'][$paletteName] = 'mf_editLanguages;'.$dca['palettes'][$paletteName];
+                $pm = PaletteManipulator::create();
+                if ('tl_content' === $table && $this->multilingualFieldsUtil->hasContentLanguageField($dc->id)) {
+                    $pm->addField('mf_language', null, PaletteManipulator::POSITION_BEFORE);
                 }
+                $pm->addField('mf_editLanguages', null, PaletteManipulator::POSITION_BEFORE);
+                $pm->applyToPalette($paletteName, $table);
             }
         };
     }
@@ -356,6 +326,41 @@ class LoadDataContainerListener
                 return $options;
             },
             'sql' => "varchar(5) NOT NULL default ''",
+        ];
+    }
+
+    private function handleAliasField(array &$dca, array $fieldConfig, string $translatedFieldName, string $language): void
+    {
+        if (!($fieldConfig['is_alias_field'] ?? false) || empty($fieldConfig['alias_base_field'])) {
+            return;
+        }
+
+        $aliasBaseField = $fieldConfig['alias_base_field'];
+        $slug = $this->slug;
+
+        $dca['fields'][$translatedFieldName]['save_callback'] = [
+            function ($value, DataContainer $dc) use ($translatedFieldName, $language, $aliasBaseField, $slug) {
+
+                $baseFieldValue = $dc->activeRecord->{$language . '_translate_' . $aliasBaseField}
+                    ? $dc->activeRecord->{$language . '_' . $aliasBaseField}
+                    : $dc->activeRecord->{$aliasBaseField};
+
+                $aliasExists = (static fn(string $alias): bool => Database::getInstance()
+                        ->prepare("SELECT id FROM $dc->table WHERE $translatedFieldName=? AND id!=?")
+                        ->execute($alias, $dc->id)
+                        ->numRows > 0);
+
+                // Generate an alias if there is none
+                if (!$value) {
+                    $value = $slug->generate($baseFieldValue, [], $aliasExists);
+                } elseif (preg_match('/^[1-9]\d*$/', (string)$value)) {
+                    throw new \Exception(sprintf($GLOBALS['TL_LANG']['ERR']['aliasNumeric'], $value));
+                } elseif ($aliasExists($value)) {
+                    throw new \Exception(sprintf($GLOBALS['TL_LANG']['ERR']['aliasExists'], $value));
+                }
+
+                return $value;
+            }
         ];
     }
 }
