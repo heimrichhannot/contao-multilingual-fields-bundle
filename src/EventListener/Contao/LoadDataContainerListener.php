@@ -79,6 +79,10 @@ class LoadDataContainerListener
             }
 
             foreach ($languages as $language) {
+                if ($language === $this->bundleConfig['fallback_language']) {
+                    continue;
+                }
+
                 $translatedFieldname = $language . '_' . $field;
                 $selectorField = $language . '_translate_' . $field;
                 $fieldDca = $dca['fields'][$field];

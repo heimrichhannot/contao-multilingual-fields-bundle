@@ -31,7 +31,10 @@ class TableBuilder
 
         $fields = [];
         foreach ($bundleConfig['data_containers'][$table]['fields'] as $fieldConfig) {
-            $field = new MultilingualField($fieldConfig);
+            $field = new MultilingualField(
+                $fieldConfig,
+                $bundleConfig['fallback_language'] ?? 'en'
+            );
             $fields[$field->fieldname] = $field;
         }
 
@@ -44,6 +47,7 @@ class TableBuilder
             $fields,
             $bundleConfig['data_containers'][$table],
             $bundleConfig['languages'] ?? [],
+            $bundleConfig['fallback_language'] ?? 'en',
         );
 
         $this->tableCache[$table] = $mlTable;

@@ -3,7 +3,7 @@ services:
     autowire: true
 
   HeimrichHannot\MultilingualFieldsBundle\:
-    resource: '../src/{EventListener,Util}/*'
+    resource: '../src/{EventListener,Twig,Util}/*'
     autoconfigure: true
     bind:
       $bundleConfig: '%huh_multilingual_fields%'

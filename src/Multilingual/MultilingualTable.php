@@ -17,6 +17,7 @@ class MultilingualTable
         public readonly array $fields = [],
         private readonly array $config = [],
         public readonly array $languages = [],
+        public readonly string $fallbackLanguage = 'en',
     ) {
     }
 
