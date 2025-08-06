@@ -24,7 +24,7 @@ class MultilingualFieldsRuntime implements RuntimeExtensionInterface
             return $fallback;
         }
 
-        $mfTable = $this->tableBuilder->buildTableFor($entity::getTable());
+        $mfTable = $this->tableBuilder->buildFor($entity::getTable());
 
         if (!$mfTable || !$mfTable->conditionMet($entity->id)) {
             return $entity->{$field} ?? $fallback;

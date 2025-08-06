@@ -42,7 +42,7 @@ class IsVisibleElementListener
             return false;
         }
 
-        $mfTable = $this->tableBuilder->buildTableFor($element::getTable());
+        $mfTable = $this->tableBuilder->buildFor($element::getTable());
         if (!$mfTable) {
             return $isVisible;
         }

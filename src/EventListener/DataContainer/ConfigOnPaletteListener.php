@@ -22,7 +22,7 @@ class ConfigOnPaletteListener
 
     public function __invoke(string $palette, DataContainer $dc): string
     {
-        $mlTable = $this->tableBuilder->buildTableFor($dc->table);
+        $mlTable = $this->tableBuilder->buildFor($dc->table);
         if (!$mlTable || !$mlTable->conditionMet($dc->id)) {
             return $palette;
         }

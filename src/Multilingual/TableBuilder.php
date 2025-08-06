@@ -14,7 +14,7 @@ class TableBuilder
     ) {
     }
 
-    public function buildTableFor(string $table): ?MultilingualTable
+    public function buildFor(string $table): ?MultilingualTable
     {
         if (isset($this->tableCache[$table])) {
             return $this->tableCache[$table];
