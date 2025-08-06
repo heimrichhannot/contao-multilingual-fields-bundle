@@ -34,7 +34,6 @@ class LoadDataContainerListener
         private readonly Slug $slug,
         private readonly DcaUtil $dcaUtil,
     ) {
-        $this->bundleConfig = $bundleConfig;
     }
 
     public function __invoke($table): void
@@ -110,9 +109,12 @@ class LoadDataContainerListener
                 // copy the field
                 $dca['fields'][$translatedFieldname] = $fieldDca;
 
+                $classes = $dca['fields'][$translatedFieldname]['eval']['tl_class'] ?? '';
+                $classes .= ' clr';
                 if (isset($dca['fields'][$translatedFieldname]['eval']['rte'])) {
-                    $dca['fields'][$translatedFieldname]['eval']['tl_class'] = 'long clr';
+                    $classes .= ' long';
                 }
+                $dca['fields'][$translatedFieldname]['eval']['tl_class'] = $classes;
 
                 $this->handleAliasField($dca, $fieldConfig, $translatedFieldname, $language);
 
