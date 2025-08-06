@@ -5,3 +5,6 @@ services:
     autowire: true
     bind:
       $bundleConfig: '%huh_multilingual_fields%'
+
+  HeimrichHannot\MultilingualFieldsBundle\Multilingual\TableBuilder:
+    autowire: true
