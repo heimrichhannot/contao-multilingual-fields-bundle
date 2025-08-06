@@ -26,6 +26,7 @@ class TableBuilder
 
         $bundleConfig = $this->parameterBag->get(Configuration::ROOT_ID);
         if (empty($bundleConfig['data_containers'][$table]) || !\is_array($bundleConfig['data_containers'][$table])) {
+            $this->tableCache[$table] = null;
             return null;
         }
 
@@ -39,6 +40,7 @@ class TableBuilder
         }
 
         if (empty($fields)) {
+            $this->tableCache[$table] = null;
             return null;
         }
 

@@ -8,9 +8,13 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
+use Contao\ContentModel;
 use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
+use Contao\Model;
+use HeimrichHannot\MultilingualFieldsBundle\Multilingual\TableBuilder;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use HeimrichHannot\UtilsBundle\Util\Utils;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 #[AsHook('isVisibleElement')]
 class IsVisibleElementListener
@@ -18,30 +22,35 @@ class IsVisibleElementListener
     public function __construct(
         protected MultilingualFieldsUtil $multilingualFieldsUtil,
         private readonly Utils $utils,
+        private readonly RequestStack $requestStack,
+        private readonly TableBuilder $tableBuilder,
     ) {
     }
 
-    public function __invoke($element, $return)
+    public function __invoke(Model $element, bool $isVisible): bool
     {
-        if ($this->utils->container()->isBackend()) {
-            return $return;
+        if ($this->utils->container()->isBackend() || !($element instanceof ContentModel)) {
+            return $isVisible;
         }
 
-        if ($this->multilingualFieldsUtil->hasContentLanguageField($element->id) && $element->mf_language && $element->mf_language !== $GLOBALS['TL_LANGUAGE']) {
+        $language = $this->requestStack->getCurrentRequest()?->getLocale() ?: 'en';
+
+        if ($this->multilingualFieldsUtil->hasContentLanguageField($element->id)
+            && $element->mf_language
+            && $element->mf_language !== $language
+        ) {
             return false;
         }
 
-        // adjust fields
-        if ($this->multilingualFieldsUtil->isTranslatable('tl_content')) {
-            foreach ($this->multilingualFieldsUtil->getTranslatableFields('tl_content') as $field) {
-                if (!$element->{$GLOBALS['TL_LANGUAGE'] . '_translate_' . $field}) {
-                    continue;
-                }
-
-                $element->{$field} = $element->{$GLOBALS['TL_LANGUAGE'] . '_' . $field};
-            }
+        $mfTable = $this->tableBuilder->buildTableFor($element::getTable());
+        if (!$mfTable) {
+            return $isVisible;
         }
 
-        return $return;
+        foreach ($mfTable->fields as $field) {
+            $element->{$field->fieldname} = $field->valueFor($element, $language);
+        }
+
+        return $isVisible;
     }
 }

@@ -2,6 +2,8 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\Multilingual;
 
+use Contao\Model;
+
 class MultilingualField
 {
     public readonly string $fieldname;
@@ -27,8 +29,12 @@ class MultilingualField
         return $language . '_translate_' . $this->fieldname;
     }
 
-    public function valueFor(array $row, string $language): mixed
+    public function valueFor(array|Model $row, string $language): mixed
     {
+        if ($row instanceof Model) {
+            $row = $row->row();
+        }
+
         if ($language !== $this->fallbackLanguage) {
             $selectorField = $this->getSelectorFieldNameFor($language);
             $fieldName = $this->getFieldNameFor($language);
