@@ -1,10 +1,16 @@
 services:
+  _defaults:
+    autowire: true
+
   HeimrichHannot\MultilingualFieldsBundle\:
     resource: '../src/{EventListener,Util}/*'
-    public: true
-    autowire: true
+    autoconfigure: true
     bind:
       $bundleConfig: '%huh_multilingual_fields%'
 
-  HeimrichHannot\MultilingualFieldsBundle\Multilingual\TableBuilder:
-    autowire: true
+  HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer\:
+    resource: '../src/EventListener/DataContainer/*'
+    autoconfigure: true
+    public: true
+
+  HeimrichHannot\MultilingualFieldsBundle\Multilingual\TableBuilder: ~

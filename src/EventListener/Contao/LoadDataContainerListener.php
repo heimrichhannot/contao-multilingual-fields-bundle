@@ -149,7 +149,7 @@ class LoadDataContainerListener
                     'exclude' => true,
                     'inputType' => 'checkbox',
                     'eval' => [
-                        'tl_class' => 'w50 translate-checkbox',
+                        'tl_class' => 'w50',
                         'submitOnChange' => true,
                         'translationField' => $translatedFieldname,
                         'translatedField' => $field,
