@@ -4,7 +4,7 @@ namespace HeimrichHannot\MultilingualFieldsBundle\Util;
 
 class DcaUtil
 {
-    public function setFieldsToReadOnly(&$dca, array $config = [])
+    public function setFieldsToReadOnly(&$dca, array $config = []): void
     {
         $skipFields = $config['skipFields'] ?? [];
         $fields = $config['fields'] ?? [];
