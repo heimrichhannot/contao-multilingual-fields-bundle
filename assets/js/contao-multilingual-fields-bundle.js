@@ -1,4 +1,4 @@
-require('../scss/contao-multilingual-fields-bundle.be.scss');
+import '../scss/contao-multilingual-fields-bundle.be.scss';
 
 function moveEditButton() {
     let widget = document.getElementById('mf_language_edit_switch_button_widget');
