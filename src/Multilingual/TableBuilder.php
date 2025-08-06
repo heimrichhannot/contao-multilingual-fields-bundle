@@ -7,6 +7,8 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 
 class TableBuilder
 {
+    private array $tableCache = [];
+
     public function __construct(
         private readonly ParameterBagInterface $parameterBag,
     ) {
@@ -14,6 +16,10 @@ class TableBuilder
 
     public function buildTableFor(string $table): ?MultilingualTable
     {
+        if (isset($this->tableCache[$table])) {
+            return $this->tableCache[$table];
+        }
+
         if (!$this->parameterBag->has(Configuration::ROOT_ID)) {
             return null;
         }
@@ -22,8 +28,6 @@ class TableBuilder
         if (empty($bundleConfig['data_containers'][$table]) || !\is_array($bundleConfig['data_containers'][$table])) {
             return null;
         }
-
-        $dca = &$GLOBALS['TL_DCA'][$table];
 
         $fields = [];
         foreach ($bundleConfig['data_containers'][$table]['fields'] as $fieldConfig) {
@@ -35,9 +39,15 @@ class TableBuilder
             return null;
         }
 
-        return new MultilingualTable(
+        $mlTable = new MultilingualTable(
+            $table,
             $fields,
+            $bundleConfig['data_containers'][$table],
             $bundleConfig['languages'] ?? [],
         );
+
+        $this->tableCache[$table] = $mlTable;
+
+        return $mlTable;
     }
 }

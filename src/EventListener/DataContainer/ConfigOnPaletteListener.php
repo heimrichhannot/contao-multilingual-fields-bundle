@@ -6,6 +6,7 @@ use Contao\CoreBundle\DataContainer\PaletteManipulator;
 use Contao\DataContainer;
 use Contao\StringUtil;
 use HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao\LoadDataContainerListener;
+use HeimrichHannot\MultilingualFieldsBundle\Multilingual\MultilingualTable;
 use HeimrichHannot\MultilingualFieldsBundle\Multilingual\TableBuilder;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -21,11 +22,16 @@ class ConfigOnPaletteListener
 
     public function __invoke(string $palette, DataContainer $dc): string
     {
+        $mlTable = $this->tableBuilder->buildTableFor($dc->table);
+        if (!$mlTable || !$mlTable->conditionMet($dc->id)) {
+            return $palette;
+        }
+
         $isEditMode = (bool) $this->requestStack->getCurrentRequest()
             ?->query->get(LoadDataContainerListener::EDIT_LANGUAGES_PARAM, false) ?? false;
 
         return match ($isEditMode) {
-            true => $this->buildEditPalette($palette, $dc),
+            true => $this->buildEditPalette($palette, $dc, $mlTable),
             false => $this->addEditFields($palette, $dc),
         };
     }
@@ -41,9 +47,8 @@ class ConfigOnPaletteListener
         return $prependPalette . $palette;
     }
 
-    private function buildEditPalette(string $originalPalette, DataContainer $dc): string
+    private function buildEditPalette(string $originalPalette, DataContainer $dc, MultilingualTable $mlTable): string
     {
-        $mlTable = $this->tableBuilder->buildTableFor($dc->table);
         if (!$mlTable) {
             return $originalPalette;
         }
