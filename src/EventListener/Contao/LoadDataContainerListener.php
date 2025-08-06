@@ -67,7 +67,6 @@ class LoadDataContainerListener
         $isEditMode = $request && $request->query->get(static::EDIT_LANGUAGES_PARAM, false);
 
         // add translated fields
-        $paletteData = [];
         $readOnlyFields = [];
 
         foreach ($config['fields'] as $fieldConfig) {
@@ -126,7 +125,7 @@ class LoadDataContainerListener
 
                 if ($isEditMode) {
                     // put to next line
-                    $dca['fields'][$field]['eval']['tl_class'] .= ' clr';
+                    $dca['fields'][$field]['eval']['tl_class'] .= ' clr mf-origin-field';
 
                     unset($dca['fields'][$translatedFieldname]['eval']['submitOnChange']);
                 }

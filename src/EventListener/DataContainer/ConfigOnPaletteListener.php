@@ -73,7 +73,6 @@ class ConfigOnPaletteListener
                     $paletteManipulator->addField($mlField->getFieldNameFor($language), $selectorFieldName);
                 }
             }
-            $paletteManipulator->removeField($paletteField);
         }
 
         $palette = $paletteManipulator->applyToString($originalPalette);
