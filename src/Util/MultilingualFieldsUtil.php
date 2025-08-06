@@ -12,23 +12,14 @@ use Contao\Model\Collection;
 use Contao\ContentModel;
 use Contao\Controller;
 use Contao\Model;
-use HeimrichHannot\UtilsBundle\Model\ModelUtil;
 
 class MultilingualFieldsUtil
 {
-    /**
-     * @var array
-     */
-    protected $bundleConfig;
-    /**
-     * @var ModelUtil
-     */
-    protected $modelUtil;
 
-    public function __construct(array $bundleConfig, ModelUtil $modelUtil)
+    public function __construct(
+        protected array $bundleConfig
+    )
     {
-        $this->bundleConfig = $bundleConfig;
-        $this->modelUtil = $modelUtil;
     }
 
     public function isTranslatable(string $table)
