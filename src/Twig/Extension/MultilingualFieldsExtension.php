@@ -14,5 +14,4 @@ class MultilingualFieldsExtension extends AbstractExtension
             new TwigFunction('mf_value', [MultilingualFieldsRuntime::class, 'mfFieldValue']),
         ];
     }
-
 }

@@ -38,6 +38,5 @@ class MultilingualField
         }
 
         return $row[$this->fieldname] ?? null;
-
     }
 }

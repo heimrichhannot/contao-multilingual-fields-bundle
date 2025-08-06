@@ -35,7 +35,7 @@ class MultilingualFieldsRuntime implements RuntimeExtensionInterface
             return $entity->{$field} ?? $fallback;
         }
 
-        $language = $language ?? $this->requestStack->getCurrentRequest()?->getLocale();
+        $language ??= $this->requestStack->getCurrentRequest()?->getLocale();
 
         if (!$language) {
             return $entity->{$field} ?? $fallback;
@@ -58,6 +58,5 @@ class MultilingualFieldsRuntime implements RuntimeExtensionInterface
         }
 
         return $this->utils->model()->findModelInstanceByPk($table, (int) $id);
-
     }
 }

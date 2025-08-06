@@ -7,7 +7,7 @@ use Contao\Database;
 class MultilingualTable
 {
     /**
-     * @internal Use TableBuilder to create instances of this class.
+     * @internal use TableBuilder to create instances of this class
      */
     public function __construct(
         public readonly string $table,
@@ -43,7 +43,6 @@ class MultilingualTable
             ->prepare($query)
             ->limit(1)
             ->execute(...$values);
-        ;
 
         return $result->numRows > 0;
     }
