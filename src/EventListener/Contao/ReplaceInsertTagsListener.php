@@ -21,14 +21,14 @@ class ReplaceInsertTagsListener
     public function __construct(
         protected ContaoFramework $framework,
         protected MultilingualFieldsUtil $multilingualFieldsUtil,
-        private Utils $utils,
+        private readonly Utils $utils,
         private readonly InsertTagParser $insertTagParser,
     ) {
     }
 
     public function __invoke($tag)
     {
-        $tagData = explode('::', $tag);
+        $tagData = explode('::', (string) $tag);
 
         if (!str_starts_with($tagData[0], 'mf')) {
             return false;

@@ -52,7 +52,7 @@ class ConfigOnPaletteListener
         $paletteManipulator = PaletteManipulator::create();
 
         foreach ($paletteFields as $paletteField) {
-            if (str_starts_with($paletteField, '{')) {
+            if (str_starts_with((string) $paletteField, '{')) {
                 continue;
             }
             $mlField = $mlTable->getField($paletteField);

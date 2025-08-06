@@ -17,7 +17,7 @@ class IsVisibleElementListener
 {
     public function __construct(
         protected MultilingualFieldsUtil $multilingualFieldsUtil,
-        private Utils $utils,
+        private readonly Utils $utils,
     ) {
     }
 

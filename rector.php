@@ -22,15 +22,19 @@ return RectorConfig::configure()
     ])
     ->withImportNames(
         importShortClasses: false,
-        removeUnusedImports: true
+        removeUnusedImports: true,
+    )
+    ->withAttributesSets(
+        all: true,
+    )
+    ->withComposerBased(
+        twig: true,
+        doctrine: true,
+        symfony: true,
     )
     ->withSets([
-        LevelSetList::UP_TO_PHP_80,
-        SymfonySetList::SYMFONY_44,
-        SymfonySetList::SYMFONY_CONSTRUCTOR_INJECTION,
-//        # Erst mit Symfony 6 (Contao 5) nutzen:
-//        // SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES,
-        ContaoLevelSetList::UP_TO_CONTAO_413,
+        LevelSetList::UP_TO_PHP_82,
+        ContaoLevelSetList::UP_TO_CONTAO_53,
         ContaoSetList::FQCN,
         ContaoSetList::ANNOTATIONS_TO_ATTRIBUTES,
     ]);

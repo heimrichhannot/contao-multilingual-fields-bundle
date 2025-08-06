@@ -11,9 +11,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 class LanguageEditSwitchButtonCallback
 {
     public function __construct(
-        private Utils $utils,
-        private RequestStack $requestStack,
-        private TranslatorInterface $translator,
+        private readonly Utils $utils,
+        private readonly RequestStack $requestStack,
+        private readonly TranslatorInterface $translator,
     ) {
     }
 
