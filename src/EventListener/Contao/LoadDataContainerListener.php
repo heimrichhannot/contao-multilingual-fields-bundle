@@ -231,10 +231,11 @@ class LoadDataContainerListener
 
         $dca['fields'][$translatedFieldName]['save_callback'] = [
             function ($value, DataContainer $dc) use ($translatedFieldName, $language, $aliasBaseField, $slug) {
+                $currentRecord = $dc->getCurrentRecord();
 
-                $baseFieldValue = $dc->activeRecord->{$language . '_translate_' . $aliasBaseField}
-                    ? $dc->activeRecord->{$language . '_' . $aliasBaseField}
-                    : $dc->activeRecord->{$aliasBaseField};
+                $baseFieldValue = $currentRecord[$language . '_translate_' . $aliasBaseField]
+                    ? $currentRecord[$language . '_' . $aliasBaseField]
+                    : $currentRecord[$aliasBaseField];
 
                 $aliasExists = (static fn(string $alias): bool => Database::getInstance()
                         ->prepare("SELECT id FROM $dc->table WHERE $translatedFieldName=? AND id!=?")
