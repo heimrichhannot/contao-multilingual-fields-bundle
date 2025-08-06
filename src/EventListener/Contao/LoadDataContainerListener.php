@@ -8,9 +8,9 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\CoreBundle\Slug\Slug;
 use Contao\CoreBundle\Intl\Locales;
-use Contao\CoreBundle\ServiceAnnotation\Hook;
 use Contao\Database;
 use Contao\DataContainer;
 use HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer\ConfigOnPaletteListener;
@@ -19,9 +19,7 @@ use HeimrichHannot\MultilingualFieldsBundle\Util\DcaUtil;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use Symfony\Component\HttpFoundation\RequestStack;
 
-/**
- * @Hook("loadDataContainer", priority=-256)
- */
+#[AsHook('loadDataContainer', priority: -256)]
 class LoadDataContainerListener
 {
     public const EDIT_LANGUAGES_PARAM = 'edit_languages';

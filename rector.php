@@ -25,12 +25,12 @@ return RectorConfig::configure()
         removeUnusedImports: true
     )
     ->withSets([
-        LevelSetList::UP_TO_PHP_74,
+        LevelSetList::UP_TO_PHP_80,
         SymfonySetList::SYMFONY_44,
         SymfonySetList::SYMFONY_CONSTRUCTOR_INJECTION,
 //        # Erst mit Symfony 6 (Contao 5) nutzen:
 //        // SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES,
-        ContaoLevelSetList::UP_TO_CONTAO_49,
+        ContaoLevelSetList::UP_TO_CONTAO_413,
         ContaoSetList::FQCN,
-//        ContaoSetList::ANNOTATIONS_TO_ATTRIBUTES,
+        ContaoSetList::ANNOTATIONS_TO_ATTRIBUTES,
     ]);

@@ -10,19 +10,8 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 
 class LanguageEditSwitchButtonCallback
 {
-    private Utils $utils;
-    private RequestStack $requestStack;
-    private TranslatorInterface $translator;
-
-    public function __construct(
-        Utils $utils,
-        RequestStack $requestStack,
-        TranslatorInterface $translator
-    )
+    public function __construct(private Utils $utils, private RequestStack $requestStack, private TranslatorInterface $translator)
     {
-        $this->utils = $utils;
-        $this->requestStack = $requestStack;
-        $this->translator = $translator;
     }
 
     public function __invoke(DataContainer $dc, string $label): string

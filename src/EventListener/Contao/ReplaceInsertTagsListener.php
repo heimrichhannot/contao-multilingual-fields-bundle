@@ -8,15 +8,13 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\Controller;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\ServiceAnnotation\Hook;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 
-/**
- * @Hook("replaceInsertTags")
- */
+#[AsHook('replaceInsertTags')]
 class ReplaceInsertTagsListener
 {
     /**
@@ -27,23 +25,21 @@ class ReplaceInsertTagsListener
      * @var ContaoFramework
      */
     protected $framework;
-    private Utils $utils;
 
     public function __construct(
         ContaoFramework $framework,
         MultilingualFieldsUtil $multilingualFieldsUtil,
-        Utils $utils
+        private Utils $utils
     ) {
         $this->framework = $framework;
         $this->multilingualFieldsUtil = $multilingualFieldsUtil;
-        $this->utils = $utils;
     }
 
     public function __invoke($tag)
     {
         $tagData = explode('::', $tag);
 
-        if (0 !== strpos($tagData[0], 'mf')) {
+        if (!str_starts_with($tagData[0], 'mf')) {
             return false;
         }
 

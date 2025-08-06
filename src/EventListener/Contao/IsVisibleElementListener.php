@@ -8,24 +8,15 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
-use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 
-/**
- * @Hook("isVisibleElement")
- */
+#[AsHook('isVisibleElement')]
 class IsVisibleElementListener
 {
-    protected MultilingualFieldsUtil $multilingualFieldsUtil;
-    private Utils $utils;
-
-    public function __construct(
-        MultilingualFieldsUtil $multilingualFieldsUtil,
-        Utils $utils
-    ) {
-        $this->multilingualFieldsUtil = $multilingualFieldsUtil;
-        $this->utils = $utils;
+    public function __construct(protected MultilingualFieldsUtil $multilingualFieldsUtil, private Utils $utils)
+    {
     }
 
     public function __invoke($element, $return)
