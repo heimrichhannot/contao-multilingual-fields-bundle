@@ -29,10 +29,14 @@ class MultilingualField
         return $language . '_translate_' . $this->fieldname;
     }
 
-    public function valueFor(array|Model $row, string $language): mixed
+    public function valueFor(array|Model $row, ?string $language = null, mixed $fallback = null): mixed
     {
         if ($row instanceof Model) {
             $row = $row->row();
+        }
+
+        if (null === $language) {
+            $language = $this->fallbackLanguage;
         }
 
         if ($language !== $this->fallbackLanguage) {
@@ -43,6 +47,6 @@ class MultilingualField
             }
         }
 
-        return $row[$this->fieldname] ?? null;
+        return $fallback ?: $row[$this->fieldname] ?? null;
     }
 }
