@@ -133,6 +133,30 @@ This would end up in your DCA being automatically modified the following way:
 1. Clear the project's cache (`<project_dir>/var/cache`).
 1. Update the database. The new fields should be created now.
 
+## Twig functions
+
+The following Twig functions are available:
+
+### `mf_value`
+This function returns the value of a translatable field for the current language. If the field is not translated, it returns
+the value of the fallback language.
+
+```twig
+{{ mf_value([field], [entity](, [fallback](, [language]))) }}
+
+# Parameters:
+# - field (string): the name of the field to get the value for
+# - entity (Model|array): the entity to get the value for (either the model or and an array with the table name and the id of the entity)
+# - fallback (string): whether to return the value of the fallback language if the field is not translated (optional, defaults to empty string)
+# - language (string): the language to get the value for (optional, defaults to the current language)
+
+# Example:
+{{ mf_value('position', ['tl_member', member.id]) }}
+{{ mf_value('position', memberModel) }}
+{{ mf_value('position', memberModel, 'Employee', 'en') }}
+```
+
+
 ## Insert tags
 
 The following new insert tags are available. These take into account the translated jumpTo url and alias.

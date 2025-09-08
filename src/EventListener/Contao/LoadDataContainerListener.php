@@ -8,59 +8,32 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
-use Contao\StringUtil;
-use Contao\CoreBundle\DataContainer\PaletteManipulator;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\CoreBundle\Intl\Locales;
-use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\CoreBundle\Slug\Slug;
 use Contao\Database;
 use Contao\DataContainer;
+use HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer\ConfigOnPaletteListener;
 use HeimrichHannot\MultilingualFieldsBundle\EventListener\DataContainer\LanguageEditSwitchButtonCallback;
+use HeimrichHannot\MultilingualFieldsBundle\Util\DcaUtil;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
-use HeimrichHannot\UtilsBundle\Dca\DcaUtil;
-use HeimrichHannot\UtilsBundle\StaticUtil\SUtils;
-use HeimrichHannot\UtilsBundle\Util\Utils;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * @Hook("loadDataContainer", priority=-256)
- */
+#[AsHook('loadDataContainer', priority: -256)]
 class LoadDataContainerListener
 {
-    const EDIT_LANGUAGES_PARAM = 'edit_languages';
+    public const EDIT_LANGUAGES_PARAM = 'edit_languages';
 
     protected static $processedTables = [];
 
-    /**
-     * @var array
-     */
-    protected $bundleConfig;
-    /**
-     * @var DcaUtil
-     */
-    protected $dcaUtil;
-    protected MultilingualFieldsUtil $multilingualFieldsUtil;
-    private Utils $utils;
-    private RequestStack $requestStack;
-    private Locales $locales;
-    private TranslatorInterface $translator;
-
     public function __construct(
-        array $bundleConfig,
-        MultilingualFieldsUtil $multilingualFieldsUtil,
-        DcaUtil $dcaUtil,
-        Utils $utils,
-        RequestStack $requestStack,
-        Locales $locales,
-        TranslatorInterface $translator
+        private array $bundleConfig,
+        protected MultilingualFieldsUtil $multilingualFieldsUtil,
+        private readonly RequestStack $requestStack,
+        private readonly Locales $locales,
+        private readonly Slug $slug,
+        private readonly DcaUtil $dcaUtil,
     ) {
-        $this->bundleConfig = $bundleConfig;
-        $this->multilingualFieldsUtil = $multilingualFieldsUtil;
-        $this->dcaUtil = $dcaUtil;
-        $this->utils = $utils;
-        $this->requestStack = $requestStack;
-        $this->locales = $locales;
-        $this->translator = $translator;
     }
 
     public function __invoke($table): void
@@ -91,10 +64,9 @@ class LoadDataContainerListener
 
         $dca = &$GLOBALS['TL_DCA'][$table];
 
-        $isEditMode = $request ? $request->query->get(static::EDIT_LANGUAGES_PARAM, false) : false;
+        $isEditMode = $request && $request->query->get(static::EDIT_LANGUAGES_PARAM, false);
 
         // add translated fields
-        $paletteData = [];
         $readOnlyFields = [];
 
         foreach ($config['fields'] as $fieldConfig) {
@@ -105,9 +77,14 @@ class LoadDataContainerListener
             }
 
             foreach ($languages as $language) {
-                $translatedFieldname = $language.'_'.$field;
-                $selectorField = $language.'_translate_'.$field;
+                if ($language === $this->bundleConfig['fallback_language']) {
+                    continue;
+                }
+
+                $translatedFieldname = $language . '_' . $field;
+                $selectorField = $language . '_translate_' . $field;
                 $fieldDca = $dca['fields'][$field];
+                $languageName = $this->locales->getLocales(null)[$language] ?? $language;
 
                 // adjust the label
                 if (isset($dca['fields'][$field]['label'])) {
@@ -116,7 +93,7 @@ class LoadDataContainerListener
                     $label = $GLOBALS['TL_LANG'][$table][$field];
                 }
 
-                $translatedLabel[0] = ((string) $label[0]).' ('.$GLOBALS['TL_LANG']['LNG'][$language].')';
+                $translatedLabel[0] = ((string) $label[0]) . ' (' . $languageName . ')';
                 $translatedLabel[1] = $label[1];
 
                 // release the reference
@@ -131,33 +108,14 @@ class LoadDataContainerListener
                 // copy the field
                 $dca['fields'][$translatedFieldname] = $fieldDca;
 
+                $classes = $dca['fields'][$translatedFieldname]['eval']['tl_class'] ?? '';
+                $classes .= ' clr';
                 if (isset($dca['fields'][$translatedFieldname]['eval']['rte'])) {
-                    $dca['fields'][$translatedFieldname]['eval']['tl_class'] = 'long clr';
+                    $classes .= ' long';
                 }
+                $dca['fields'][$translatedFieldname]['eval']['tl_class'] = $classes;
 
-                // alias field?
-                $isAliasField = $fieldConfig['is_alias_field'] ?? false;
-                $aliasBaseField = $fieldConfig['alias_base_field'] ?? false;
-
-                if ($isAliasField && $aliasBaseField) {
-                    $dca['fields'][$translatedFieldname]['save_callback'] = [
-                        function ($value, DataContainer $dc) use ($translatedFieldname, $table, $language, $aliasBaseField) {
-                            $baseFieldValue = $dc->activeRecord->{$language.'_translate_'.$aliasBaseField} ?
-                                $dc->activeRecord->{$language.'_'.$aliasBaseField} : $dc->activeRecord->{$aliasBaseField};
-
-                            return $this->dcaUtil->generateAlias(
-                                $value,
-                                $dc->id,
-                                $table,
-                                $baseFieldValue,
-                                true,
-                                [
-                                    'aliasField' => $translatedFieldname,
-                                ]
-                            );
-                        },
-                    ];
-                }
+                $this->handleAliasField($dca, $fieldConfig, $translatedFieldname, $language);
 
                 // add the original fields as readonly
                 $readOnlyFields[] = $field;
@@ -167,7 +125,7 @@ class LoadDataContainerListener
 
                 if ($isEditMode) {
                     // put to next line
-                    $dca['fields'][$field]['eval']['tl_class'] .= ' clr';
+                    $dca['fields'][$field]['eval']['tl_class'] .= ' clr mf-origin-field';
 
                     unset($dca['fields'][$translatedFieldname]['eval']['submitOnChange']);
                 }
@@ -187,14 +145,16 @@ class LoadDataContainerListener
                 // add the selector
                 $dca['fields'][$selectorField] = [
                     'label' => [
-                        sprintf($GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_translateField'][0],
-                            $GLOBALS['TL_LANG']['LNG'][$language]),
+                        sprintf(
+                            $GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_translateField'][0],
+                            $languageName
+                        ),
                         $GLOBALS['TL_LANG']['MSC']['multilingualFieldsBundle']['mf_translateField'][1],
                     ],
                     'exclude' => true,
                     'inputType' => 'checkbox',
                     'eval' => [
-                        'tl_class' => 'w50 translate-checkbox',
+                        'tl_class' => 'w50',
                         'submitOnChange' => true,
                         'translationField' => $translatedFieldname,
                         'translatedField' => $field,
@@ -206,17 +166,6 @@ class LoadDataContainerListener
                 if ($isEditMode && 0 === array_search($language, $languages)) {
                     $dca['fields'][$selectorField]['eval']['tl_class'] .= ' clr';
                 }
-
-                // add the subpalette
-                $dca['palettes']['__selector__'][] = $selectorField;
-                $dca['subpalettes'][$selectorField] = $translatedFieldname;
-
-                // add field to palette data
-                if (!isset($paletteData[$field])) {
-                    $paletteData[$field] = [];
-                }
-
-                $paletteData[$field][] = $selectorField;
             }
         }
 
@@ -233,98 +182,12 @@ class LoadDataContainerListener
         }
 
         // add language switch
-        $langId = $isEditMode ? 'MSC.multilingualFieldsBundle.mf_closeEditLanguages' : 'MSC.multilingualFieldsBundle.mf_editLanguages';
         $dca['fields']['mf_editLanguages'] = [
             'inputType' => 'mf_editLanguages',
             'input_field_callback' => [LanguageEditSwitchButtonCallback::class, '__invoke'],
         ];
 
-        // create onload callback for the palette generation
-        $dca['config']['onload_callback'][] = function (DataContainer $dc = null) use ($isEditMode, $paletteData, $config, $table, &$dca) {
-            if (null === $dc || !$dc->id) {
-                return;
-            }
-
-            // check sql condition
-            if (isset($config['sql_condition'])) {
-                $sqlCondition = $config['sql_condition'];
-                $sqlConditionValues = $config['sql_condition_values'] ?? [];
-
-                $values = array_merge([$dc->id], $sqlConditionValues);
-
-                $check = Database::getInstance()->prepare("SELECT id FROM $table WHERE id=? AND $sqlCondition")->limit(1);
-
-                $check = \call_user_func_array([$check, 'execute'], $values);
-
-                if ($check->numRows < 1) {
-                    return;
-                }
-            }
-
-            $paletteName = $this->dcaUtil->getCurrentPaletteName($table, (int) $dc->id) ?: 'default';
-
-            // create palette for editing the fields
-            if ($isEditMode) {
-                $paletteManipulator = PaletteManipulator::create();
-
-                $translatableFields = $this->multilingualFieldsUtil->getTranslatableFields($table);
-
-                // remove untranslatable fields
-                foreach ($dca['fields'] as $field => $data) {
-                    if (!\in_array($field, $translatableFields) && !isset($data['eval']['translationConfig']) && !isset($data['eval']['translatedField'])) {
-                        $paletteManipulator->removeField($field);
-                    }
-                }
-
-                foreach ($paletteData as $originalField => $fields) {
-                    if (!\in_array($originalField, StringUtil::trimsplit('[;,]', $dc->getPalette()))) {
-                        if (!$this->dcaUtil->isSubPaletteField($originalField, $table)) {
-                            $paletteManipulator->removeField($originalField);
-
-                            continue;
-                        }
-                        // sub palette field and selector in palette?
-                        if (!($selector = $this->dcaUtil->getSubPaletteFieldSelector($originalField, $table)) ||
-                                !\in_array($selector, StringUtil::trimsplit('[;,]', $dc->getPalette()))
-                            ) {
-                            $paletteManipulator->removeField($originalField);
-
-                            continue;
-                        }
-
-                        // add the sub palette field as an ordinary field
-                        if (isset($paletteData[$selector]) && \is_array($paletteData[$selector])) {
-                            $selector = $paletteData[$selector][\count($paletteData[$selector]) - 1];
-                        }
-
-                        $paletteManipulator->addField($originalField, $selector);
-                    }
-
-                    $lastInsertedField = $originalField;
-
-                    foreach ($fields as $field) {
-                        $paletteManipulator->addField($field, $lastInsertedField);
-
-                        $lastInsertedField = $field;
-                    }
-
-                    // remove selector behavior
-                    unset($dca['fields'][$originalField]['eval']['submitOnChange']);
-                    SUtils::array()::removeValue($originalField, $dca['palettes']['__selector__']);
-                }
-
-                $paletteManipulator->applyToPalette($paletteName, $table);
-
-                $dca['palettes'][$paletteName] = 'mf_editLanguages;'.$dca['palettes'][$paletteName];
-            } else {
-                if ('tl_content' === $table) {
-                    $dca['palettes'][$paletteName] = ($this->multilingualFieldsUtil->hasContentLanguageField($dc->id) ? 'mf_language,' : '').
-                        'mf_editLanguages;'.$dca['palettes'][$paletteName];
-                } else {
-                    $dca['palettes'][$paletteName] = 'mf_editLanguages;'.$dca['palettes'][$paletteName];
-                }
-            }
-        };
+        $dca['config']['onpalette_callback'][] = [ConfigOnPaletteListener::class, '__invoke'];
     }
 
     protected function addContentLanguageField(): void
@@ -342,7 +205,12 @@ class LoadDataContainerListener
             'exclude' => true,
             'filter' => true,
             'inputType' => 'select',
-            'eval' => ['includeBlankOption' => true, 'chosen' => true, 'rgxp' => 'locale', 'tl_class' => 'w50'],
+            'eval' => [
+                'includeBlankOption' => true,
+                'chosen' => true,
+                'rgxp' => 'locale',
+                'tl_class' => 'w50',
+            ],
             'options_callback' => static function () use ($multilingualFieldsUtil, $locales) {
                 $languages = $locales->getLocales(null, true);
                 $options = [];
@@ -356,6 +224,42 @@ class LoadDataContainerListener
                 return $options;
             },
             'sql' => "varchar(5) NOT NULL default ''",
+        ];
+    }
+
+    private function handleAliasField(array &$dca, array $fieldConfig, string $translatedFieldName, string $language): void
+    {
+        if (!($fieldConfig['is_alias_field'] ?? false) || empty($fieldConfig['alias_base_field'])) {
+            return;
+        }
+
+        $aliasBaseField = $fieldConfig['alias_base_field'];
+        $slug = $this->slug;
+
+        $dca['fields'][$translatedFieldName]['save_callback'] = [
+            function ($value, DataContainer $dc) use ($translatedFieldName, $language, $aliasBaseField, $slug) {
+                $currentRecord = $dc->getCurrentRecord();
+
+                $baseFieldValue = $currentRecord[$language . '_translate_' . $aliasBaseField]
+                    ? $currentRecord[$language . '_' . $aliasBaseField]
+                    : $currentRecord[$aliasBaseField];
+
+                $aliasExists = (static fn (string $alias): bool => Database::getInstance()
+                    ->prepare("SELECT id FROM $dc->table WHERE $translatedFieldName=? AND id!=?")
+                    ->execute($alias, $dc->id)
+                    ->numRows > 0);
+
+                // Generate an alias if there is none
+                if (!$value) {
+                    $value = $slug->generate($baseFieldValue, [], $aliasExists);
+                } elseif (preg_match('/^[1-9]\d*$/', (string) $value)) {
+                    throw new \Exception(sprintf($GLOBALS['TL_LANG']['ERR']['aliasNumeric'], $value));
+                } elseif ($aliasExists($value)) {
+                    throw new \Exception(sprintf($GLOBALS['TL_LANG']['ERR']['aliasExists'], $value));
+                }
+
+                return $value;
+            },
         ];
     }
 }

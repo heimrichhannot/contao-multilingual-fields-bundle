@@ -8,12 +8,10 @@
 
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
-use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 
-/**
- * @Hook("sqlGetFromDca")
- */
+#[AsHook('sqlGetFromDca')]
 class SqlGetFromDcaListener
 {
     /**
@@ -21,9 +19,6 @@ class SqlGetFromDcaListener
      */
     protected $multilingualFieldsUtil;
 
-    /**
-     * SqlGetFromDcaListener constructor.
-     */
     public function __construct(MultilingualFieldsUtil $multilingualFieldsUtil)
     {
         $this->multilingualFieldsUtil = $multilingualFieldsUtil;

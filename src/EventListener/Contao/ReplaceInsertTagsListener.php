@@ -9,41 +9,28 @@
 namespace HeimrichHannot\MultilingualFieldsBundle\EventListener\Contao;
 
 use Contao\Controller;
+use Contao\CoreBundle\DependencyInjection\Attribute\AsHook;
 use Contao\CoreBundle\Framework\ContaoFramework;
-use Contao\CoreBundle\ServiceAnnotation\Hook;
+use Contao\CoreBundle\InsertTag\InsertTagParser;
 use HeimrichHannot\MultilingualFieldsBundle\Util\MultilingualFieldsUtil;
 use HeimrichHannot\UtilsBundle\Util\Utils;
 
-/**
- * @Hook("replaceInsertTags")
- */
+#[AsHook('replaceInsertTags')]
 class ReplaceInsertTagsListener
 {
-    /**
-     * @var MultilingualFieldsUtil
-     */
-    protected $multilingualFieldsUtil;
-    /**
-     * @var ContaoFramework
-     */
-    protected $framework;
-    private Utils $utils;
-
     public function __construct(
-        ContaoFramework $framework,
-        MultilingualFieldsUtil $multilingualFieldsUtil,
-        Utils $utils
+        protected ContaoFramework $framework,
+        protected MultilingualFieldsUtil $multilingualFieldsUtil,
+        private readonly Utils $utils,
+        private readonly InsertTagParser $insertTagParser,
     ) {
-        $this->framework = $framework;
-        $this->multilingualFieldsUtil = $multilingualFieldsUtil;
-        $this->utils = $utils;
     }
 
     public function __invoke($tag)
     {
-        $tagData = explode('::', $tag);
+        $tagData = explode('::', (string) $tag);
 
-        if (0 !== strpos($tagData[0], 'mf')) {
+        if (!str_starts_with($tagData[0], 'mf')) {
             return false;
         }
 
@@ -60,7 +47,7 @@ class ReplaceInsertTagsListener
                 if ('event' === $type) {
                     $table = 'tl_calendar_events';
                 } else {
-                    $table = 'tl_'.$type;
+                    $table = 'tl_' . $type;
                 }
 
                 $entity = $tagData[1];
@@ -71,9 +58,7 @@ class ReplaceInsertTagsListener
                 }
 
                 if (!$this->multilingualFieldsUtil->isTranslatable($table)) {
-                    return $this->framework->getAdapter(Controller::class)->replaceInsertTags(
-                        '{{'.$type.'_url::'.$entityObj->id.'}}', false
-                    );
+                    return $this->insertTagParser->replace('{{' . $type . '_url::' . $entityObj->id . '}}');
                 }
 
                 if (empty($GLOBALS['TL_DCA'][$table])) {
@@ -83,18 +68,16 @@ class ReplaceInsertTagsListener
 
                 $ptable = $dca['config']['ptable'] ?? null;
 
-                if (!$ptable || null === ($archive = $this->utils->model()->findOneModelInstanceBy($ptable, [$ptable.'.id=?'], [$entityObj->pid]))) {
+                if (!$ptable || null === ($archive = $this->utils->model()->findOneModelInstanceBy($ptable, [$ptable . '.id=?'], [$entityObj->pid]))) {
                     return false;
                 }
 
-                $url = $this->framework->getAdapter(Controller::class)->replaceInsertTags(
-                    '{{changelanguage_link_url::'.$archive->jumpTo.'::'.$language.'}}'
-                );
+                $url = $this->insertTagParser->replace('{{changelanguage_link_url::' . $archive->jumpTo . '::' . $language . '}}');
 
                 // alias
                 $entityObj = $this->multilingualFieldsUtil->translateModel($table, $entityObj, $language);
 
-                $url .= '/'.$entityObj->alias;
+                $url .= '/' . $entityObj->alias;
 
                 return $url;
         }

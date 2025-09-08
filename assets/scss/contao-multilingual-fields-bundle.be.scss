@@ -1,4 +1,4 @@
-@import 'mixins/readonly';
+@use 'mixins/readonly' as readonly;
 
 .tl_tbox.nolegend {
   #mf_language_edit_switch_button_widget {
@@ -31,11 +31,20 @@
 }
 
 #mf_language_edit_switch_button {
-  float: left;
-  padding: 1px 0 1px 23px;
-  background-position: left center;
+  background-color: transparent;
+  background-position: 0;
   background-repeat: no-repeat;
-  background-size: contain;
+  border: none;
+  display: inline-block;
+  margin-left: 0px;
+  padding: 3px 0 3px 23px;
+
+  float: left;
+
+  //padding: 1px 0 1px 23px;
+  //background-position: left center;
+  //background-repeat: no-repeat;
+  //background-size: contain;
 
   background-image: url(../img/pencil.svg);
 
@@ -47,13 +56,13 @@
 // readonly controls
 .tl_chosen, select, .tl_submit {
   &.readonly, .readonly & {
-    @include readonly-widget();
+    @include readonly.readonly-widget();
   }
 }
 
 .widget.readonly {
   .tl_metawizard .tl_text, .tl_select, .mce-tinymce {
-    @include readonly-widget();
+    @include readonly.readonly-widget();
   }
 
   .mce-tinymce {
@@ -63,14 +72,6 @@
   }
 }
 
-// checkboxes
-.translate-checkbox {
-  margin-bottom: 3.5rem;
-
-  & + [id^="sub_"] > .widget {
-    margin-top: -3.5rem;
-    margin-bottom: 3.5rem;
-    clear: both;
-    float: left;
-  }
+fieldset.tl_box > .widget.mf-origin-field:not(:first-of-type) {
+  padding-top: 2rem;
 }
